@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\MatkulController;
 use App\Http\Controllers\UserManagerController;
+use App\Http\Controllers\PesertaController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -69,6 +70,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('user', [UserManagerController::class, 'index'])->name('user.manager');
         });
     });
+});
+
+// Tambahkan route untuk Peserta
+Route::prefix('peserta')->name('peserta.')->group(function () {
+    // Daftar peserta
+    Route::get('/', [PesertaController::class, 'index'])->name('index');
+
+    // Menambah peserta
+    Route::get('create', [PesertaController::class, 'create'])->name('create');
+    Route::post('/', [PesertaController::class, 'store'])->name('store');
+
+    // Mengedit peserta
+    Route::get('{peserta}/edit', [PesertaController::class, 'edit'])->name('edit');
+    Route::put('{peserta}', [PesertaController::class, 'update'])->name('update');
+
+    // Menghapus peserta
+    Route::delete('{peserta}', [PesertaController::class, 'destroy'])->name('destroy');
 });
 
 require __DIR__ . '/settings.php';
