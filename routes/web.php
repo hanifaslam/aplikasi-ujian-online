@@ -5,12 +5,9 @@ use App\Http\Controllers\MatkulController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserManagerController;
 use App\Http\Controllers\UserManagerEditController;
-use App\Http\Controllers\DosenManagerController;
-use App\Http\Controllers\DosenManagerEditController;
 use App\Http\Controllers\PesertaManagerController;
 use App\Http\Controllers\PesertaManagerEditController;
 use App\Http\Controllers\PesertaImportController;
-use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\JenisUjianEditController;
 use App\Http\Controllers\ExamScheduleController;
 use App\Http\Controllers\EventController;
@@ -181,6 +178,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('create', [UserManagerEditController::class, 'create'])->name('create');
                 Route::post('/', [UserManagerEditController::class, 'store'])->name('store');
             });
+
 
             Route::get('roles', function () {
                 return Inertia::render('user-management/role-manager');

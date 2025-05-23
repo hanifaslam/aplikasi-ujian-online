@@ -8,10 +8,15 @@ use App\Models\Peserta;
 
 class PesertaManagerController extends Controller
 {
-    function index(Request $request)
+
+    public function index(Request $request)
     {
         $search = $request->query('search');
         $pages = $request->query('pages', 10);
+
+        // Ambil parameter sorting dari query string, default: sort by 'nama' ascending
+        $sort = $request->query('sort', 'id');
+        $direction = 'asc';
 
         $pesertaQuery = Peserta::with('jurusanRef');
 
@@ -23,6 +28,14 @@ class PesertaManagerController extends Controller
             });
         }
 
+        // Validasi kolom yang boleh di-sort untuk keamanan
+        $allowedSorts = ['id', 'nama', 'nis', 'username'];
+        if (in_array($sort, $allowedSorts)) {
+            $pesertaQuery->orderBy($sort, $direction);
+        } else {
+            $pesertaQuery->orderBy('id', 'asc');
+        }
+
         return Inertia::render(
             'master-data/peserta-manager',
             [
@@ -30,6 +43,8 @@ class PesertaManagerController extends Controller
                 'filters' => [
                     'search' => $search,
                     'pages' => $pages,
+                    'sort' => $sort,
+                    // 'direction' tidak perlu karena selalu ASC
                 ],
             ]
         );
@@ -57,5 +72,4 @@ class PesertaManagerController extends Controller
 
         return redirect()->back()->with('success', 'Data berhasil diupdate');
     }
-
 }
