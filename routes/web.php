@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\KategoriUjianController;
 use App\Http\Controllers\MatkulController;
 use App\Http\Controllers\TestController;
@@ -38,14 +39,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-<<<<<<< HEAD
     Route::get('monitoring-ujian', function () {
         return Inertia::render('peserta');
     })->name('monitoring.ujian');
-=======
-    Route::get('monitoring-ujian', [App\Http\Controllers\MonitoringUjianController::class, 'index'])->name('monitoring.ujian');
-    Route::get('monitoring-ujian/{id}', [App\Http\Controllers\MonitoringUjianController::class, 'show'])->name('monitoring.ujian.detail');
->>>>>>> ea637fa57c1c40c1b913d4cb2397d113e6ea5bed
 
     Route::prefix('jadwal-ujian')->name('exam-schedule.')->group(function () {
         Route::get('/', [ExamScheduleController::class, 'index'])->name('index');
@@ -162,6 +158,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('create', [JenisUjianEditController::class, 'create'])->name('create');
             Route::post('/', [JenisUjianEditController::class, 'store'])->name('store');
         });
+
+        Route::get('/kategorisoal', [BankSoalController::class, 'getKategoriSoal']);
     });
 
     Route::middleware(['role:super_admin'])->group(function () {
