@@ -12,8 +12,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Dashboard() {
-    const [activeTab, setActiveTab] = useState('dashboard');
-
     // Mock data for stats
     const stats = [
         { title: 'peserta login', value: '150', icon: Users },
