@@ -39,9 +39,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::get('monitoring-ujian', function () {
-        return Inertia::render('peserta');
-    })->name('monitoring.ujian');
+    Route::get('monitoring-ujian', [App\Http\Controllers\MonitoringUjianController::class, 'index'])->name('monitoring.ujian');
+    Route::get('monitoring-ujian/{id}', [App\Http\Controllers\MonitoringUjianController::class, 'show'])->name('monitoring.ujian.detail');
 
     Route::prefix('jadwal-ujian')->name('exam-schedule.')->group(function () {
         Route::get('/', [ExamScheduleController::class, 'index'])->name('index');
