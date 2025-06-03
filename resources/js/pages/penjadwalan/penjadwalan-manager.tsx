@@ -1,3 +1,4 @@
+// Penjadwalan Manager Page (migrated from exam-schedule/exam-manager.tsx)
 import AppLayout from '@/layouts/app-layout';
 import { PageFilter, PageProps, PaginatedResponse, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -16,7 +17,7 @@ import { SearchInputMenu } from '@/components/ui/search-input-menu';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Jadwal Ujian',
-        href: '/exam-schedule',
+        href: '/penjadwalan',
     },
 ];
 
@@ -35,7 +36,7 @@ type JadwalUjian = {
     flag: number;
 };
 
-export default function ExamScheduleManager() {
+export default function PenjadwalanManager() {
     const { data: examData, filters, flash } = usePage<PageProps<JadwalUjian>>().props;
 
     useEffect(() => {
@@ -48,18 +49,29 @@ export default function ExamScheduleManager() {
             <Head title="Jadwal Ujian" />
 
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <ContentTitle title="Jadwal Ujian" showButton onButtonClick={() => router.visit(route('exam-schedule.create'))} />
+                <ContentTitle 
+                    title="Jadwal Ujian" 
+                    showButton 
+                    onButtonClick={() => router.visit(route('penjadwalan.create'))} 
+                />
                 <div className="mt-4 flex items-center justify-between">
-                    <EntriesSelector currentValue={examData.per_page} options={[10, 25, 50, 100]} routeName="exam-schedule.index" />
-                    <SearchInputMenu defaultValue={filters.search} routeName="exam-schedule.index" />
+                    <EntriesSelector 
+                        currentValue={examData.per_page} 
+                        options={[10, 25, 50, 100]} 
+                        routeName="penjadwalan.index" 
+                    />
+                    <SearchInputMenu 
+                        defaultValue={filters.search} 
+                        routeName="penjadwalan.index" 
+                    />
                 </div>
-                <ExamTable data={examData} pageFilters={filters} />
+                <PenjadwalanTable data={examData} pageFilters={filters} />
             </div>
         </AppLayout>
     );
 }
 
-function ExamTable({ data: examData, pageFilters: filters }: { data: PaginatedResponse<JadwalUjian>; pageFilters: PageFilter }) {
+function PenjadwalanTable({ data: examData, pageFilters: filters }: { data: PaginatedResponse<JadwalUjian>; pageFilters: PageFilter }) {
     const [open, setOpen] = useState(false);
     const [targetId, setTargetId] = useState<number | null>(null);
 
@@ -71,7 +83,7 @@ function ExamTable({ data: examData, pageFilters: filters }: { data: PaginatedRe
     const confirmDelete = async () => {
         try {
             if (targetId !== null) {
-                router.delete(route('exam-schedule.destroy', targetId), {
+                router.delete(route('penjadwalan.destroy', targetId), {
                     preserveState: true,
                     preserveScroll: true,
                 });
@@ -84,7 +96,7 @@ function ExamTable({ data: examData, pageFilters: filters }: { data: PaginatedRe
     };
 
     const navigateToPage = (page: number) => {
-        router.visit(route('exam-schedule.index'), {
+        router.visit(route('penjadwalan.index'), {
             data: {
                 page: page,
                 search: filters.search,
@@ -121,15 +133,22 @@ function ExamTable({ data: examData, pageFilters: filters }: { data: PaginatedRe
         },
         {
             label: 'Tipe',
-            render: (exam: JadwalUjian) => (exam.online_offline === 1 ? 'Online' : 'Offline'),
+            render: (exam: JadwalUjian) => exam.online_offline === 1 ? 'Online' : 'Offline',
         },
         {
             label: 'Aksi',
             className: 'w-[100px] text-center',
             render: (exam: JadwalUjian) => (
                 <div className="flex justify-center gap-2">
-                    <CButtonIcon icon={Pencil} onClick={() => router.visit(route('exam-schedule.edit', exam.id_penjadwalan))} />
-                    <CButtonIcon icon={Trash2} type="danger" onClick={() => handleDelete(exam.id_penjadwalan)} />
+                    <CButtonIcon 
+                        icon={Pencil} 
+                        onClick={() => router.visit(route('penjadwalan.edit', exam.id_penjadwalan))} 
+                    />
+                    <CButtonIcon 
+                        icon={Trash2} 
+                        type="danger" 
+                        onClick={() => handleDelete(exam.id_penjadwalan)} 
+                    />
                 </div>
             ),
         },
