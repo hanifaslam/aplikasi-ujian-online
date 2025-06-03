@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\KategoriUjianController;
 use App\Http\Controllers\MatkulController;
 use App\Http\Controllers\TestController;
@@ -157,6 +158,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('create', [JenisUjianEditController::class, 'create'])->name('create');
             Route::post('/', [JenisUjianEditController::class, 'store'])->name('store');
         });
+
+        Route::get('/kategorisoal', [BankSoalController::class, 'getKategoriSoal']);
     });
 
     Route::middleware(['role:super_admin'])->group(function () {
