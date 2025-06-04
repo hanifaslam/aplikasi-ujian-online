@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class PengerjaanJawaban extends Model
 {
+    protected $connection = 'data_db';
+    protected $table = 't_pengerjaan_jawaban';
+    public $timestamps = false;
+
     protected $fillable = [
         'id_pengerjaan',
         'kd_bidang',

@@ -87,6 +87,7 @@ export interface FlashProps {
 export interface PageFilter {
     search: string;
     pages: number;
+    status?: string;
 }
 
 export type PageProps<T> = {

@@ -2,15 +2,20 @@ import { ContentTitle } from '@/components/content-title';
 import { StatCard } from '@/components/stat-card';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { PageFilter, PaginatedResponse } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 
-import { CAlertDialog } from '@/components/c-alert-dialog';
 import { CButtonIcon } from '@/components/ui/c-button';
 import { CustomTable } from '@/components/ui/c-table';
+import { EntriesSelector } from '@/components/ui/entries-selector';
 import { PaginationWrapper } from '@/components/ui/pagination-wrapper';
+import { SearchInputMenu } from '@/components/ui/search-input-menu';
+import { StatusFilter } from '@/components/ui/status-filter';
+import { usePolling } from '@/hooks/use-polling';
+import { Seconds } from '@/lib/calculator';
 
 interface Ujian {
     id: number;
@@ -30,43 +35,37 @@ interface Student {
     completedQuestions: number;
     totalQuestions: number;
     status: 'active' | 'finish';
+    nilai?: number;
 }
 
-interface PaginatedMockData {
-    data: Student[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
+interface Stats {
+    total_students: number;
+    active_students: number;
+    finished_students: number;
 }
 
 interface Props {
     ujian: Ujian;
+    studentsData: PaginatedResponse<Student>;
+    stats: Stats;
+    filters: PageFilter;
+    flash?: {
+        success?: string;
+        error?: string;
+    };
 }
 
-// Mock data for students
-const generateMockStudents = (count: number): Student[] => {
-    return Array.from({ length: count }, (_, i) => ({
-        id: i + 1,
-        name: `Student ${i + 1}`,
-        completedQuestions: Math.floor(Math.random() * 100),
-        totalQuestions: 100,
-        status: Math.random() > 0.5 ? 'active' : 'finish',
-    }));
-};
+export default function Detail({ ujian, studentsData, stats, filters, flash }: Props) {
+    useEffect(() => {
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
+    }, [flash]);
 
-export default function Detail({ ujian }: Props) {
-    const [studentData, setStudentData] = useState<PaginatedMockData>({
-        data: generateMockStudents(10),
-        current_page: 1,
-        last_page: 5,
-        per_page: 10,
-        total: 50,
-    });
-
-    const [filters, setFilters] = useState({
-        search: '',
-        page: 1,
+    // Polling for updates every 3 seconds
+    usePolling({
+        interval: Seconds(3),
+        onlyKeys: ['studentsData', 'stats'],
+        key: ujian.id,
     });
 
     const breadcrumbs = [
@@ -80,39 +79,6 @@ export default function Detail({ ujian }: Props) {
         },
     ];
 
-    const handlePerPageChange = (perPage: number) => {
-        setStudentData((prev) => ({
-            ...prev,
-            per_page: perPage,
-            last_page: Math.ceil(prev.total / perPage),
-        }));
-    };
-
-    const handleSearchChange = (search: string) => {
-        setFilters((prev) => ({ ...prev, search, page: 1 }));
-        // In a real app, this would trigger a server request
-        // For mock data, we'll just simulate filtering
-        const filtered = generateMockStudents(50).filter((student) => student.name.toLowerCase().includes(search.toLowerCase()));
-
-        setStudentData({
-            data: filtered.slice(0, studentData.per_page),
-            current_page: 1,
-            last_page: Math.ceil(filtered.length / studentData.per_page),
-            per_page: studentData.per_page,
-            total: filtered.length,
-        });
-    };
-
-    const handlePageChange = (page: number) => {
-        setFilters((prev) => ({ ...prev, page }));
-        // For mock data, simulate pagination
-        setStudentData((prev) => ({
-            ...prev,
-            current_page: page,
-            data: generateMockStudents(50).slice((page - 1) * prev.per_page, page * prev.per_page),
-        }));
-    };
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Detail ${ujian.paket_ujian}`} />
@@ -125,7 +91,6 @@ export default function Detail({ ujian }: Props) {
                     buttonText="Kembali"
                     onButtonClick={() => router.visit(route('monitoring.ujian'))}
                 />
-
                 <Card className="flex flex-col gap-4 p-4">
                     <CardHeader>
                         <CardTitle className="text-2xl">{ujian.paket_ujian}</CardTitle>
@@ -133,42 +98,35 @@ export default function Detail({ ujian }: Props) {
                     </CardHeader>
                     <CardContent>
                         <div className="flex w-full gap-2">
-                            <StatCard title="Total Student" value="500" />
-                            <StatCard title="Total Active Student" value="364" />
-                            <StatCard title="Total Finished Student" value="200" />
+                            <StatCard title="Total" value={stats.total_students.toString()} />
+                            <StatCard title="Active" value={stats.active_students.toString()} />
+                            <StatCard title="Finished" value={stats.finished_students.toString()} />
+                            <StatCard
+                                title="Not Started"
+                                value={(stats.total_students - stats.active_students - stats.finished_students).toString()}
+                            />
                         </div>
                     </CardContent>
                     <CardFooter />
                 </Card>
-
                 <div className="mt-4">
                     <div className="mb-4 flex items-center justify-between">
-                        {/* Using select and input for filtering instead of components */}
-                        <div>
-                            <label className="mr-2">Show entries:</label>
-                            <select
-                                value={studentData.per_page}
-                                onChange={(e) => handlePerPageChange(Number(e.target.value))}
-                                className="rounded border p-1"
-                            >
-                                {[10, 25, 50, 100].map((value) => (
-                                    <option key={value} value={value}>
-                                        {value}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                value={filters.search}
-                                onChange={(e) => handleSearchChange(e.target.value)}
-                                className="rounded border p-1"
-                            />
+                        <EntriesSelector
+                            currentValue={studentsData.per_page}
+                            options={[10, 25, 50, 100]}
+                            routeName="monitoring.ujian.detail"
+                            routeParams={{ id: ujian.id }}
+                        />
+                        <div className="flex items-center gap-4">
+                            <StatusFilter currentValue={filters.status} routeName="monitoring.ujian.detail" routeParams={{ id: ujian.id }} />
+                            <SearchInputMenu defaultValue={filters.search} routeName="monitoring.ujian.detail" routeParams={{ id: ujian.id }} />
                         </div>
                     </div>
-                    <StudentTable data={studentData} onPageChange={handlePageChange} />
+                    {studentsData && studentsData.data && studentsData.data.length > 0 ? (
+                        <StudentTable data={studentsData} ujianId={ujian.id} pageFilters={filters} />
+                    ) : (
+                        <div className="mt-4 text-center text-gray-500">No Participants took the exam</div>
+                    )}
                 </div>
             </div>
         </AppLayout>
@@ -187,33 +145,38 @@ const StatusBadge: React.FC<{ status: 'active' | 'finish' }> = ({ status }) => {
     }
 };
 
-function StudentTable({ data: studentData, onPageChange }: { data: PaginatedMockData; onPageChange: (page: number) => void }) {
-    const [open, setOpen] = useState(false);
-    const [targetId, setTargetId] = useState<number | null>(null);
-
-    const handleDelete = (id: number) => {
-        setTargetId(id);
-        setOpen(true);
-    };
-
-    const confirmDelete = async () => {
-        try {
-            if (targetId !== null) {
-                // In a real app, this would be a server request
-                toast.success(`Successfully deleted student ${targetId}`);
-            }
-        } catch {
-            toast.error('Unexpected error occurred');
-        } finally {
-            setOpen(false);
-        }
+function StudentTable({
+    data: studentsData,
+    ujianId,
+    pageFilters: filters,
+}: {
+    data: PaginatedResponse<Student>;
+    ujianId: number;
+    pageFilters: PageFilter;
+}) {
+    // Helper function to navigate with preserved search parameters
+    const navigateToPage = (page: number) => {
+        router.visit(route('monitoring.ujian.detail', ujianId), {
+            data: {
+                page: page,
+                search: filters.search,
+                status: filters.status,
+                pages: studentsData.per_page,
+            },
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     const columns = [
         {
             label: 'No',
             className: 'w-[80px] text-center',
-            render: (student: Student) => <div className="text-center font-medium">{student.id}</div>,
+            render: (student: Student) => {
+                const index = studentsData.data.indexOf(student);
+                const no = (studentsData.current_page - 1) * studentsData.per_page + (index + 1);
+                return <div className="text-center font-medium">{no}</div>;
+            },
         },
         {
             label: 'Nama',
@@ -233,9 +196,16 @@ function StudentTable({ data: studentData, onPageChange }: { data: PaginatedMock
         {
             label: 'Action',
             className: 'w-[100px] text-center',
-            render: (student: Student) => (
+            render: () => (
                 <div className="flex justify-center">
-                    <CButtonIcon icon={Trash2} type="danger" onClick={() => handleDelete(student.id)} />
+                    <CButtonIcon
+                        icon={Trash2}
+                        type="danger"
+                        className="cursor-not-allowed opacity-50"
+                        onClick={() => {
+                            toast.info('Delete functionality is currently disabled');
+                        }}
+                    />
                 </div>
             ),
         },
@@ -244,24 +214,16 @@ function StudentTable({ data: studentData, onPageChange }: { data: PaginatedMock
     return (
         <>
             <div className="flex flex-col gap-4">
-                <CustomTable columns={columns} data={studentData.data} />
+                <CustomTable columns={columns} data={studentsData.data} />
 
                 <PaginationWrapper
-                    currentPage={studentData.current_page}
-                    lastPage={studentData.last_page}
-                    perPage={studentData.per_page}
-                    total={studentData.total}
-                    onNavigate={onPageChange}
+                    currentPage={studentsData.current_page}
+                    lastPage={studentsData.last_page}
+                    perPage={studentsData.per_page}
+                    total={studentsData.total}
+                    onNavigate={navigateToPage}
                 />
             </div>
-
-            <CAlertDialog
-                open={open}
-                setOpen={setOpen}
-                onContinue={confirmDelete}
-                title="Delete Student"
-                description="Are you sure you want to delete this student? This action cannot be undone."
-            />
         </>
     );
 }
