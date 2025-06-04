@@ -36,7 +36,7 @@ interface UsePollingOptions {
  * @returns Object with methods to control polling
  */
 export function usePolling({ interval, onlyKeys, enabled = true, key }: UsePollingOptions) {
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const clearPolling = useCallback(() => {
         if (intervalRef.current) {

@@ -108,7 +108,7 @@ export default function Detail({ ujian, studentsData, stats, filters, flash }: P
                         </div>
                     </CardContent>
                     <CardFooter />
-                </Card>{' '}
+                </Card>
                 <div className="mt-4">
                     <div className="mb-4 flex items-center justify-between">
                         <EntriesSelector
