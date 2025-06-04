@@ -63,9 +63,19 @@ const items: MainNavItem[] = [
                 icon: Book,
             },
             {
-                title: 'Soal',
-                href: '/master-data/soal',
+                title: 'Paket Soal',
+                href: '/master-data/paket-soal',
                 icon: Book,
+            },
+            {
+                title: 'Bank Soal',
+                href: '/master-data/bank-soal',
+                icon: Book,
+            },
+            {
+                title: 'Matakuliah',
+                icon: BookA,
+                href: '/master-data/matakuliah',
             },
         ],
     },
@@ -104,11 +114,6 @@ const items: MainNavItem[] = [
         title: 'Rekap Nilai',
         icon: GraduationCap,
         href: '/rekap-nilai',
-    },
-    {
-        title: 'Master Matakuliah',
-        icon: BookA,
-        href: '/master-matakuliah',
     },
 ];
 

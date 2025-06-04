@@ -99,6 +99,20 @@ php artisan serve
 npm run dev
 ```
 
+There are two users who have different roles, admin and super admin.
+
+```bash
+Super Admin
+Email: admin@admin.com
+Password: admin123
+```
+
+```bash
+Admin
+Email: test@admin.com
+Password: admin123
+```
+
 ### Using the All-in-One Development Command
 
 To start the server, queue worker, and Vite dev server all at once:

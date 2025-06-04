@@ -22,12 +22,30 @@ class UserManagerController extends Controller
         return Inertia::render(
             'user-management/user-manager',
             [
-                'users' => $usersQuery->paginate((int)$pages)->withQueryString(),
+                'data' => $usersQuery->paginate((int)$pages)->withQueryString(),
                 'filters' => [
                     'search' => $search,
                     'pages' => $pages,
                 ],
             ]
         );
+    }
+
+    public function delete(Request $request, User $user)
+    {
+        if ($request->user()->id === $user->id) {
+            return redirect()->back()->with('error', 'You cannot delete your own account');
+        }
+
+        $user->delete();
+
+        return redirect()->back()->with('success', 'User deleted successfully');
+    }
+
+    public function update(Request $request, User $user)
+    {
+        $user->update($request->all());
+
+        return redirect()->back()->with('success', 'User updated successfully');
     }
 }

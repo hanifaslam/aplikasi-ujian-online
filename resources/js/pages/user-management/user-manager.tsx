@@ -1,255 +1,157 @@
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { PageFilter, PageProps, PaginatedResponse, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
 
-import CButtonIcon from '@/components/ui/c-button-icon';
-import { Input } from '@/components/ui/input';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Pencil, Search, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+
+import { CAlertDialog } from '@/components/c-alert-dialog';
+import { ContentTitle } from '@/components/content-title';
+import { CButtonIcon } from '@/components/ui/c-button';
+import { CustomTable } from '@/components/ui/c-table';
+import { EntriesSelector } from '@/components/ui/entries-selector';
+import { PaginationWrapper } from '@/components/ui/pagination-wrapper';
+import { SearchInputMenu } from '@/components/ui/search-input-menu';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'User Manager',
-        href: '/user',
+        href: '/user-management/user',
     },
 ];
 
-type User = {
+interface User {
     id: number;
     name: string;
     email: string;
     roles: { name: string }[];
-};
-
-type UserFilter = {
-    search: string;
-    pages: number;
-};
-
-interface PaginatedUsers {
-    data: User[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
 }
 
-type PageProps = {
-    users: PaginatedUsers;
-    filters: UserFilter;
-};
+export default function UserManager() {
+    const { data: userData, filters, flash } = usePage<PageProps<User>>().props;
 
-export default function MasterMatakuliah() {
-    const { users, filters } = usePage<PageProps>().props;
+    useEffect(() => {
+        if (flash.success) toast.success(flash.success);
+        if (flash.error) toast.error(flash.error);
+    }, [flash]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="User Manager" />
 
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <h1 className="text-xl font-bold">User List</h1>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <p>Show</p>
-                        <Select
-                            value={String(users.per_page)}
-                            onValueChange={(value) => {
-                                router.visit(route('user-management.user.manager'), {
-                                    data: { pages: value },
-                                    preserveState: true,
-                                    preserveScroll: true,
-                                });
-                            }}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder={String(users.per_page)} />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {[10, 12, 25, 50, 100].map((option) => (
-                                    <SelectItem key={option} value={String(option)}>
-                                        {option}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <p>entries</p>
-                    </div>
-                    <div className="relative w-[300px]">
-                        <Input
-                            type="text"
-                            placeholder="Search..."
-                            className="pl-10"
-                            defaultValue={filters.search}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    router.visit(route('user-management.user.manager'), {
-                                        data: { search: (e.target as HTMLInputElement).value },
-                                        preserveState: true,
-                                        preserveScroll: true,
-                                    });
-                                }
-                            }}
-                            // onChange={(e) => {
-                            //     router.visit(route('user-management.user.manager'), {
-                            //         data: { search: e.target.value },
-                            //         preserveState: true,
-                            //         preserveScroll: true,
-                            //     });
-                            // }}
-                        />
-                        <Search className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2 transform" />
-                    </div>
+                <ContentTitle title="User Manager" showButton onButtonClick={() => router.visit(route('user-management.user.create'))} />
+                <div className="mt-4 flex items-center justify-between">
+                    <EntriesSelector currentValue={userData.per_page} options={[10, 12, 25, 50, 100]} routeName="user-management.user.manager" />
+                    <SearchInputMenu defaultValue={filters.search} routeName="user-management.user.manager" />
                 </div>
-                <UserTable props={users} />
+                <UserTable data={userData} pageFilters={filters} />
             </div>
         </AppLayout>
     );
 }
 
-function RoleDecorator(role: string) {
+const RoleDecorator: React.FC<{ role: string }> = ({ role }) => {
     switch (role) {
         case 'super_admin':
-            return <span className="bg-button-danger rounded p-2 text-white shadow">{role}</span>;
+            return <span className="bg-button-danger mr-2 rounded p-2 text-white shadow">{role}</span>;
         case 'admin':
-            return <span className="rounded bg-yellow-500 p-2 text-white shadow">{role}</span>;
+            return <span className="mr-2 rounded bg-yellow-500 p-2 text-white shadow">{role}</span>;
         default:
-            return <span className="text-white">{role}</span>;
+            return <span className="mr-2 text-white">{role}</span>;
     }
-}
+};
 
-function renderPaginationLinks(links: PaginatedUsers['links'], currentPage: number) {
-    const filteredLinks = [];
-    const totalPages = links.length - 2;
+function UserTable({ data: userData, pageFilters: filters }: { data: PaginatedResponse<User>; pageFilters: PageFilter }) {
+    const [open, setOpen] = useState(false);
+    const [targetId, setTargetId] = useState<number | null>(null);
 
-    // Always include prev link
-    filteredLinks.push(links[0]);
+    const handleDelete = (id: number) => {
+        setTargetId(id);
+        setOpen(true);
+    };
 
-    // Show exactly 3 page numbers centered around current page when possible
-    let start = Math.max(1, currentPage - 1);
-    const end = Math.min(start + 2, totalPages);
+    const confirmDelete = async () => {
+        try {
+            if (targetId !== null) {
+                router.delete(route('user-management.user.destroy', targetId), {
+                    preserveState: true,
+                    preserveScroll: true,
+                });
+            }
+        } catch {
+            toast.error('Unexpected error occurred');
+        } finally {
+            setOpen(false);
+        }
+    };
 
-    // Adjust start if we hit the end boundary
-    if (end - start < 2) {
-        start = Math.max(1, end - 2);
-    }
+    // Helper function to navigate with preserved search parameters
+    const navigateToPage = (page: number) => {
+        router.visit(route('user-management.user.manager'), {
+            data: {
+                page: page,
+                search: filters.search,
+            },
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
 
-    // Add the 3 page numbers (or fewer if totalPages < 3)
-    for (let i = start; i <= end; i++) {
-        filteredLinks.push(links[i]);
-    }
-
-    // Always include next link
-    filteredLinks.push(links[links.length - 1]);
-
-    return filteredLinks;
-}
-
-function UserTable({ props: users }: { props: PaginatedUsers }) {
-    const data = users.data;
-    const paginationLinks = renderPaginationLinks(users.links, users.current_page);
+    const columns = [
+        {
+            label: 'ID',
+            className: 'w-[100px] text-center',
+            render: (user: User) => <div className="text-center font-medium">{user.id}</div>,
+        },
+        {
+            label: 'Name',
+            className: 'w-[400px]',
+            render: (user: User) => user.name,
+        },
+        {
+            label: 'Email',
+            className: 'w-[400px]',
+            render: (user: User) => user.email,
+        },
+        {
+            label: 'Roles',
+            render: (user: User) => (
+                <div className="flex flex-wrap gap-1">
+                    {user.roles.map((r) => (
+                        <RoleDecorator key={r.name} role={r.name} />
+                    ))}
+                </div>
+            ),
+        },
+        {
+            label: 'Action',
+            className: 'w-[100px] text-center',
+            render: (user: User) => (
+                <div className="flex justify-center gap-2">
+                    <CButtonIcon icon={Pencil} onClick={() => router.visit(route('user-management.user.edit', user.id))} />
+                    <CButtonIcon icon={Trash2} type="danger" onClick={() => handleDelete(user.id)} />
+                </div>
+            ),
+        },
+    ];
 
     return (
-        <div className="flex flex-col gap-4">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead className="w-[100px] text-center">Number</TableHead>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Roles</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {data.map((user) => (
-                        <TableRow key={user.id}>
-                            <TableCell className="text-center font-medium">{user.id}</TableCell>
-                            <TableCell>{user.name}</TableCell>
-                            <TableCell>{user.email}</TableCell>
-                            <TableCell>{RoleDecorator(user.roles.map((role) => role.name).join(', '))}</TableCell>
-                            <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
-                                    <CButtonIcon icon={Pencil} type="primary" />
-                                    <CButtonIcon icon={Trash2} type="danger" />
-                                </div>
-                            </TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+        <>
+            <div className="flex flex-col gap-4">
+                <CustomTable columns={columns} data={userData.data} />
 
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-muted-foreground text-sm sm:order-1">
-                    Showing {Math.min(users.current_page * users.per_page, users.total)} of {users.total} entries
-                </div>
-
-                <div className="flex w-full justify-end sm:order-2 sm:w-auto">
-                    <Pagination>
-                        <PaginationContent>
-                            {paginationLinks.map((link, i) => {
-                                if (link.label === '...') {
-                                    return (
-                                        <PaginationItem key={i}>
-                                            <span className="text-muted-foreground flex h-9 w-9 items-center justify-center text-sm">...</span>
-                                        </PaginationItem>
-                                    );
-                                }
-
-                                const isPrev = link.label.toLowerCase().includes('previous');
-                                const isNext = link.label.toLowerCase().includes('next');
-                                const isDisabled = !link.url;
-                                const baseClasses = isDisabled
-                                    ? 'pointer-events-none opacity-50 select-none'
-                                    : 'cursor-pointer hover:bg-muted select-none';
-
-                                if (isPrev) {
-                                    return (
-                                        <PaginationItem key={i}>
-                                            <PaginationPrevious
-                                                onClick={() => link.url && router.visit(link.url)}
-                                                className={`${baseClasses} border-border border transition-colors select-none`}
-                                            />
-                                        </PaginationItem>
-                                    );
-                                }
-
-                                if (isNext) {
-                                    return (
-                                        <PaginationItem key={i}>
-                                            <PaginationNext
-                                                onClick={() => link.url && router.visit(link.url)}
-                                                className={`${baseClasses} border-border border transition-colors select-none`}
-                                            />
-                                        </PaginationItem>
-                                    );
-                                }
-
-                                return (
-                                    <PaginationItem key={i}>
-                                        <PaginationLink
-                                            onClick={() => link.url && router.visit(link.url)}
-                                            isActive={link.active}
-                                            className={
-                                                link.active
-                                                    ? 'bg-button-primary border-button-primary border text-white select-none'
-                                                    : `${baseClasses} border-border border select-none`
-                                            }
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
-                                    </PaginationItem>
-                                );
-                            })}
-                        </PaginationContent>
-                    </Pagination>
-                </div>
+                <PaginationWrapper
+                    currentPage={userData.current_page}
+                    lastPage={userData.last_page}
+                    perPage={userData.per_page}
+                    total={userData.total}
+                    onNavigate={navigateToPage}
+                />
             </div>
-        </div>
+
+            <CAlertDialog open={open} setOpen={setOpen} onContinue={confirmDelete} />
+        </>
     );
 }
