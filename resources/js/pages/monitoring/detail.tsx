@@ -144,29 +144,10 @@ export default function Detail({ ujian }: Props) {
                 <div className="mt-4">
                     <div className="mb-4 flex items-center justify-between">
                         {/* Using select and input for filtering instead of components */}
-                        <div>
-                            <label className="mr-2">Show entries:</label>
-                            <select
-                                value={studentData.per_page}
-                                onChange={(e) => handlePerPageChange(Number(e.target.value))}
-                                className="rounded border p-1"
-                            >
-                                {[10, 25, 50, 100].map((value) => (
-                                    <option key={value} value={value}>
-                                        {value}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <input
-                                type="text"
-                                placeholder="Search..."
-                                value={filters.search}
-                                onChange={(e) => handleSearchChange(e.target.value)}
-                                className="rounded border p-1"
-                            />
-                        </div>
+                        {/* <div className="mt-4 flex items-center justify-between">
+                            <EntriesSelector currentValue={ujianList.per_page} options={[10, 25, 50, 100]} routeName="monitoring-ujian" />
+                            <SearchInputMenu defaultValue={filters.search} routeName="monitoring-ujian" />
+                        </div> */}
                     </div>
                     <StudentTable data={studentData} onPageChange={handlePageChange} />
                 </div>
