@@ -29,12 +29,12 @@ class JadwalUjian extends Model
         'id_penjadwalan' => 'integer',
     ];
 
-    private function penjadwalan()
+    public function penjadwalan()
     {
         return $this->belongsTo(Penjadwalan::class, 'id_penjadwalan', 'id_penjadwalan');
     }
 
-    private function kodepart()
+    public function kodepart()
     {
         return $this->belongsTo(MBidang::class, 'kode_part', 'kode');
     }

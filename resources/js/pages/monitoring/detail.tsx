@@ -4,10 +4,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
-import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { CAlertDialog } from '@/components/c-alert-dialog';
 import { CButtonIcon } from '@/components/ui/c-button';
 import { CustomTable } from '@/components/ui/c-table';
 import { PaginationWrapper } from '@/components/ui/pagination-wrapper';
@@ -30,9 +28,10 @@ interface Student {
     completedQuestions: number;
     totalQuestions: number;
     status: 'active' | 'finish';
+    nilai?: number;
 }
 
-interface PaginatedMockData {
+interface StudentsData {
     data: Student[];
     current_page: number;
     last_page: number;
@@ -40,35 +39,28 @@ interface PaginatedMockData {
     total: number;
 }
 
-interface Props {
-    ujian: Ujian;
+interface Stats {
+    total_students: number;
+    active_students: number;
+    finished_students: number;
 }
 
-// Mock data for students
-const generateMockStudents = (count: number): Student[] => {
-    return Array.from({ length: count }, (_, i) => ({
-        id: i + 1,
-        name: `Student ${i + 1}`,
-        completedQuestions: Math.floor(Math.random() * 100),
-        totalQuestions: 100,
-        status: Math.random() > 0.5 ? 'active' : 'finish',
-    }));
-};
+interface DebugInfo {
+    participantIds: number[];
+    jadwalUjianSoal: Record<string, unknown>;
+    totalQuestions: number;
+    pengerjaanList: Record<string, unknown>;
+    finished_students: number;
+}
 
-export default function Detail({ ujian }: Props) {
-    const [studentData, setStudentData] = useState<PaginatedMockData>({
-        data: generateMockStudents(10),
-        current_page: 1,
-        last_page: 5,
-        per_page: 10,
-        total: 50,
-    });
+interface Props {
+    ujian: Ujian;
+    studentsData: StudentsData;
+    stats: Stats;
+    debug?: DebugInfo; // For debugging purposes
+}
 
-    const [filters, setFilters] = useState({
-        search: '',
-        page: 1,
-    });
-
+export default function Detail({ ujian, studentsData, stats, debug }: Props) {
     const breadcrumbs = [
         {
             title: 'Monitoring Ujian',
@@ -80,38 +72,27 @@ export default function Detail({ ujian }: Props) {
         },
     ];
 
-    const handlePerPageChange = (perPage: number) => {
-        setStudentData((prev) => ({
-            ...prev,
-            per_page: perPage,
-            last_page: Math.ceil(prev.total / perPage),
-        }));
-    };
-
-    const handleSearchChange = (search: string) => {
-        setFilters((prev) => ({ ...prev, search, page: 1 }));
-        // In a real app, this would trigger a server request
-        // For mock data, we'll just simulate filtering
-        const filtered = generateMockStudents(50).filter((student) => student.name.toLowerCase().includes(search.toLowerCase()));
-
-        setStudentData({
-            data: filtered.slice(0, studentData.per_page),
-            current_page: 1,
-            last_page: Math.ceil(filtered.length / studentData.per_page),
-            per_page: studentData.per_page,
-            total: filtered.length,
-        });
-    };
-
     const handlePageChange = (page: number) => {
-        setFilters((prev) => ({ ...prev, page }));
-        // For mock data, simulate pagination
-        setStudentData((prev) => ({
-            ...prev,
-            current_page: page,
-            data: generateMockStudents(50).slice((page - 1) * prev.per_page, page * prev.per_page),
-        }));
+        router.get(
+            route('monitoring.ujian.show', ujian.id),
+            {
+                page,
+                perPage: studentsData.per_page,
+            },
+            {
+                preserveState: true,
+                replace: true,
+            },
+        );
     };
+
+    // log the data from the props
+    console.log('Ujian Data:', ujian);
+    console.log('Students Data:', studentsData);
+    console.log('Stats:', stats);
+    if (debug) {
+        console.log('Debug Info:', debug);
+    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -133,9 +114,9 @@ export default function Detail({ ujian }: Props) {
                     </CardHeader>
                     <CardContent>
                         <div className="flex w-full gap-2">
-                            <StatCard title="Total Student" value="500" />
-                            <StatCard title="Total Active Student" value="364" />
-                            <StatCard title="Total Finished Student" value="200" />
+                            <StatCard title="Total Student" value={stats.total_students.toString()} />
+                            <StatCard title="Total Active Student" value={stats.active_students.toString()} />
+                            <StatCard title="Total Finished Student" value={stats.finished_students.toString()} />
                         </div>
                     </CardContent>
                     <CardFooter />
@@ -149,7 +130,7 @@ export default function Detail({ ujian }: Props) {
                             <SearchInputMenu defaultValue={filters.search} routeName="monitoring-ujian" />
                         </div> */}
                     </div>
-                    <StudentTable data={studentData} onPageChange={handlePageChange} />
+                    <StudentTable data={studentsData} onPageChange={handlePageChange} />
                 </div>
             </div>
         </AppLayout>
@@ -168,28 +149,7 @@ const StatusBadge: React.FC<{ status: 'active' | 'finish' }> = ({ status }) => {
     }
 };
 
-function StudentTable({ data: studentData, onPageChange }: { data: PaginatedMockData; onPageChange: (page: number) => void }) {
-    const [open, setOpen] = useState(false);
-    const [targetId, setTargetId] = useState<number | null>(null);
-
-    const handleDelete = (id: number) => {
-        setTargetId(id);
-        setOpen(true);
-    };
-
-    const confirmDelete = async () => {
-        try {
-            if (targetId !== null) {
-                // In a real app, this would be a server request
-                toast.success(`Successfully deleted student ${targetId}`);
-            }
-        } catch {
-            toast.error('Unexpected error occurred');
-        } finally {
-            setOpen(false);
-        }
-    };
-
+function StudentTable({ data: studentsData, onPageChange }: { data: StudentsData; onPageChange: (page: number) => void }) {
     const columns = [
         {
             label: 'No',
@@ -214,9 +174,16 @@ function StudentTable({ data: studentData, onPageChange }: { data: PaginatedMock
         {
             label: 'Action',
             className: 'w-[100px] text-center',
-            render: (student: Student) => (
+            render: () => (
                 <div className="flex justify-center">
-                    <CButtonIcon icon={Trash2} type="danger" onClick={() => handleDelete(student.id)} />
+                    <CButtonIcon
+                        icon={Trash2}
+                        type="danger"
+                        className="cursor-not-allowed opacity-50"
+                        onClick={() => {
+                            toast.info('Delete functionality is currently disabled');
+                        }}
+                    />
                 </div>
             ),
         },
@@ -225,24 +192,16 @@ function StudentTable({ data: studentData, onPageChange }: { data: PaginatedMock
     return (
         <>
             <div className="flex flex-col gap-4">
-                <CustomTable columns={columns} data={studentData.data} />
+                <CustomTable columns={columns} data={studentsData.data} />
 
                 <PaginationWrapper
-                    currentPage={studentData.current_page}
-                    lastPage={studentData.last_page}
-                    perPage={studentData.per_page}
-                    total={studentData.total}
+                    currentPage={studentsData.current_page}
+                    lastPage={studentsData.last_page}
+                    perPage={studentsData.per_page}
+                    total={studentsData.total}
                     onNavigate={onPageChange}
                 />
             </div>
-
-            <CAlertDialog
-                open={open}
-                setOpen={setOpen}
-                onContinue={confirmDelete}
-                title="Delete Student"
-                description="Are you sure you want to delete this student? This action cannot be undone."
-            />
         </>
     );
 }
