@@ -5,7 +5,7 @@ import AppLayout from '@/layouts/app-layout';
 import { PageFilter, PaginatedResponse } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { CButtonIcon } from '@/components/ui/c-button';
@@ -14,7 +14,8 @@ import { EntriesSelector } from '@/components/ui/entries-selector';
 import { PaginationWrapper } from '@/components/ui/pagination-wrapper';
 import { SearchInputMenu } from '@/components/ui/search-input-menu';
 import { StatusFilter } from '@/components/ui/status-filter';
-import { Seconds } from '@/lib/utils';
+import { usePolling } from '@/hooks/use-polling';
+import { Seconds } from '@/lib/calculator';
 
 interface Ujian {
     id: number;
@@ -55,33 +56,17 @@ interface Props {
 }
 
 export default function Detail({ ujian, studentsData, stats, filters, flash }: Props) {
-    const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
     useEffect(() => {
         if (flash?.success) toast.success(flash.success);
         if (flash?.error) toast.error(flash.error);
     }, [flash]);
 
-    // Refresh data every 3 seconds
-    useEffect(() => {
-        const startPolling = () => {
-            intervalRef.current = setInterval(() => {
-                router.reload({
-                    only: ['studentsData', 'stats'],
-                });
-            }, Seconds(3));
-        };
-
-        // Start polling
-        startPolling();
-
-        // Cleanup interval on component unmount
-        return () => {
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-            }
-        };
-    }, [ujian.id]); // Re-start polling if ujian ID changes
+    // Polling for updates every 3 seconds
+    usePolling({
+        interval: Seconds(3),
+        onlyKeys: ['studentsData', 'stats'],
+        key: ujian.id,
+    });
 
     const breadcrumbs = [
         {
