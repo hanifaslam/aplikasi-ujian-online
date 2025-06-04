@@ -28,4 +28,14 @@ class JadwalUjian extends Model
         'kode_part' => 'integer',
         'id_penjadwalan' => 'integer',
     ];
+
+    private function penjadwalan()
+    {
+        return $this->belongsTo(Penjadwalan::class, 'id_penjadwalan', 'id_penjadwalan');
+    }
+
+    private function kodepart()
+    {
+        return $this->belongsTo(MBidang::class, 'kode_part', 'kode');
+    }
 }
