@@ -4,3 +4,7 @@ import { twMerge } from 'tailwind-merge';
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
+
+export const Seconds = function (seconds: number): number {
+    return seconds * 1000;
+};

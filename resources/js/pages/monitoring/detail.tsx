@@ -2,13 +2,19 @@ import { ContentTitle } from '@/components/content-title';
 import { StatCard } from '@/components/stat-card';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { PageFilter, PaginatedResponse } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { CButtonIcon } from '@/components/ui/c-button';
 import { CustomTable } from '@/components/ui/c-table';
+import { EntriesSelector } from '@/components/ui/entries-selector';
 import { PaginationWrapper } from '@/components/ui/pagination-wrapper';
+import { SearchInputMenu } from '@/components/ui/search-input-menu';
+import { StatusFilter } from '@/components/ui/status-filter';
+import { Seconds } from '@/lib/utils';
 
 interface Ujian {
     id: number;
@@ -31,36 +37,52 @@ interface Student {
     nilai?: number;
 }
 
-interface StudentsData {
-    data: Student[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-}
-
 interface Stats {
     total_students: number;
     active_students: number;
     finished_students: number;
 }
 
-interface DebugInfo {
-    participantIds: number[];
-    jadwalUjianSoal: Record<string, unknown>;
-    totalQuestions: number;
-    pengerjaanList: Record<string, unknown>;
-    finished_students: number;
-}
-
 interface Props {
     ujian: Ujian;
-    studentsData: StudentsData;
+    studentsData: PaginatedResponse<Student>;
     stats: Stats;
-    debug?: DebugInfo; // For debugging purposes
+    filters: PageFilter;
+    flash?: {
+        success?: string;
+        error?: string;
+    };
 }
 
-export default function Detail({ ujian, studentsData, stats, debug }: Props) {
+export default function Detail({ ujian, studentsData, stats, filters, flash }: Props) {
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        if (flash?.success) toast.success(flash.success);
+        if (flash?.error) toast.error(flash.error);
+    }, [flash]);
+
+    // Refresh data every 3 seconds
+    useEffect(() => {
+        const startPolling = () => {
+            intervalRef.current = setInterval(() => {
+                router.reload({
+                    only: ['studentsData', 'stats'],
+                });
+            }, Seconds(3));
+        };
+
+        // Start polling
+        startPolling();
+
+        // Cleanup interval on component unmount
+        return () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+            }
+        };
+    }, [ujian.id]); // Re-start polling if ujian ID changes
+
     const breadcrumbs = [
         {
             title: 'Monitoring Ujian',
@@ -71,28 +93,6 @@ export default function Detail({ ujian, studentsData, stats, debug }: Props) {
             href: '#',
         },
     ];
-
-    const handlePageChange = (page: number) => {
-        router.get(
-            route('monitoring.ujian.show', ujian.id),
-            {
-                page,
-                perPage: studentsData.per_page,
-            },
-            {
-                preserveState: true,
-                replace: true,
-            },
-        );
-    };
-
-    // log the data from the props
-    console.log('Ujian Data:', ujian);
-    console.log('Students Data:', studentsData);
-    console.log('Stats:', stats);
-    if (debug) {
-        console.log('Debug Info:', debug);
-    }
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -106,7 +106,6 @@ export default function Detail({ ujian, studentsData, stats, debug }: Props) {
                     buttonText="Kembali"
                     onButtonClick={() => router.visit(route('monitoring.ujian'))}
                 />
-
                 <Card className="flex flex-col gap-4 p-4">
                     <CardHeader>
                         <CardTitle className="text-2xl">{ujian.paket_ujian}</CardTitle>
@@ -114,23 +113,35 @@ export default function Detail({ ujian, studentsData, stats, debug }: Props) {
                     </CardHeader>
                     <CardContent>
                         <div className="flex w-full gap-2">
-                            <StatCard title="Total Student" value={stats.total_students.toString()} />
-                            <StatCard title="Total Active Student" value={stats.active_students.toString()} />
-                            <StatCard title="Total Finished Student" value={stats.finished_students.toString()} />
+                            <StatCard title="Total" value={stats.total_students.toString()} />
+                            <StatCard title="Active" value={stats.active_students.toString()} />
+                            <StatCard title="Finished" value={stats.finished_students.toString()} />
+                            <StatCard
+                                title="Not Started"
+                                value={(stats.total_students - stats.active_students - stats.finished_students).toString()}
+                            />
                         </div>
                     </CardContent>
                     <CardFooter />
-                </Card>
-
+                </Card>{' '}
                 <div className="mt-4">
                     <div className="mb-4 flex items-center justify-between">
-                        {/* Using select and input for filtering instead of components */}
-                        {/* <div className="mt-4 flex items-center justify-between">
-                            <EntriesSelector currentValue={ujianList.per_page} options={[10, 25, 50, 100]} routeName="monitoring-ujian" />
-                            <SearchInputMenu defaultValue={filters.search} routeName="monitoring-ujian" />
-                        </div> */}
+                        <EntriesSelector
+                            currentValue={studentsData.per_page}
+                            options={[10, 25, 50, 100]}
+                            routeName="monitoring.ujian.detail"
+                            routeParams={{ id: ujian.id }}
+                        />
+                        <div className="flex items-center gap-4">
+                            <StatusFilter currentValue={filters.status} routeName="monitoring.ujian.detail" routeParams={{ id: ujian.id }} />
+                            <SearchInputMenu defaultValue={filters.search} routeName="monitoring.ujian.detail" routeParams={{ id: ujian.id }} />
+                        </div>
                     </div>
-                    <StudentTable data={studentsData} onPageChange={handlePageChange} />
+                    {studentsData && studentsData.data && studentsData.data.length > 0 ? (
+                        <StudentTable data={studentsData} ujianId={ujian.id} pageFilters={filters} />
+                    ) : (
+                        <div className="mt-4 text-center text-gray-500">No Participants took the exam</div>
+                    )}
                 </div>
             </div>
         </AppLayout>
@@ -149,12 +160,38 @@ const StatusBadge: React.FC<{ status: 'active' | 'finish' }> = ({ status }) => {
     }
 };
 
-function StudentTable({ data: studentsData, onPageChange }: { data: StudentsData; onPageChange: (page: number) => void }) {
+function StudentTable({
+    data: studentsData,
+    ujianId,
+    pageFilters: filters,
+}: {
+    data: PaginatedResponse<Student>;
+    ujianId: number;
+    pageFilters: PageFilter;
+}) {
+    // Helper function to navigate with preserved search parameters
+    const navigateToPage = (page: number) => {
+        router.visit(route('monitoring.ujian.detail', ujianId), {
+            data: {
+                page: page,
+                search: filters.search,
+                status: filters.status,
+                pages: studentsData.per_page,
+            },
+            preserveState: true,
+            preserveScroll: true,
+        });
+    };
+
     const columns = [
         {
             label: 'No',
             className: 'w-[80px] text-center',
-            render: (student: Student) => <div className="text-center font-medium">{student.id}</div>,
+            render: (student: Student) => {
+                const index = studentsData.data.indexOf(student);
+                const no = (studentsData.current_page - 1) * studentsData.per_page + (index + 1);
+                return <div className="text-center font-medium">{no}</div>;
+            },
         },
         {
             label: 'Nama',
@@ -199,7 +236,7 @@ function StudentTable({ data: studentsData, onPageChange }: { data: StudentsData
                     lastPage={studentsData.last_page}
                     perPage={studentsData.per_page}
                     total={studentsData.total}
-                    onNavigate={onPageChange}
+                    onNavigate={navigateToPage}
                 />
             </div>
         </>

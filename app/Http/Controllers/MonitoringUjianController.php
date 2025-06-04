@@ -5,12 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Penjadwalan;
 use App\Models\JadwalUjian;
 use App\Models\JadwalUjianSoal;
-use App\Models\Peserta;
 use App\Models\Pengerjaan;
 use App\Models\PengerjaanJawaban;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Log;
 
 class MonitoringUjianController extends Controller
 {
@@ -19,9 +17,8 @@ class MonitoringUjianController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = $request->input('perPage', 10);
-        $search = $request->input('search', '');
-        $page = $request->input('page', 1);
+        $pages = $request->query('pages', 10);
+        $search = $request->query('search', null);
 
         // Eager load both event and jenis_ujian relationships
         $query = Penjadwalan::with(['event', 'jenis_ujian']);
@@ -39,7 +36,7 @@ class MonitoringUjianController extends Controller
             });
         }
 
-        $ujianList = $query->paginate($perPage);
+        $ujianList = $query->paginate((int)$pages)->withQueryString();
 
         // Transform the data to match the expected format in the frontend
         $ujianList->getCollection()->transform(function ($item) {
@@ -60,20 +57,19 @@ class MonitoringUjianController extends Controller
             'ujianList' => $ujianList,
             'filters' => [
                 'search' => $search,
-                'perPage' => $perPage,
-                'page' => $page,
+                'pages' => $pages,
             ],
         ]);
     }
 
     /**
-     * Display the specified monitoring ujian.
+     * Display participants and their progress for a specific exam.
      */
     public function show(Request $request, $id)
     {
-        $perPage = $request->input('perPage', 10);
-        $search = $request->input('search', '');
-        $page = $request->input('page', 1);
+        $pages = $request->query('pages', 10);
+        $search = $request->query('search', null);
+        $status = $request->query('status', null);
 
         // Get the penjadwalan data
         $penjadwalan = Penjadwalan::with(['event', 'jenis_ujian'])->findOrFail($id);
@@ -92,11 +88,6 @@ class MonitoringUjianController extends Controller
         ];
 
         // Get JadwalUjian filtered by id_penjadwalan and kode_part matching tipe_ujian
-        Log::info('Searching JadwalUjian with:', [
-            'id_penjadwalan' => $id,
-            'kode_part' => $penjadwalan->tipe_ujian,
-        ]);
-
         // First try with the original query
         $jadwalUjian = JadwalUjian::where('id_penjadwalan', $id)
             ->where('kode_part', $penjadwalan->tipe_ujian)
@@ -104,25 +95,12 @@ class MonitoringUjianController extends Controller
 
         // If not found, try without kode_part filter (in case there's a mismatch)
         if (!$jadwalUjian) {
-            Log::info('JadwalUjian not found with kode_part filter, trying without it');
             $jadwalUjian = JadwalUjian::where('id_penjadwalan', $id)->first();
         }
 
-        Log::info('JadwalUjian found:', [
-            'found' => $jadwalUjian ? true : false,
-            'id_ujian' => $jadwalUjian ? $jadwalUjian->id_ujian : null,
-            'kode_part' => $jadwalUjian ? $jadwalUjian->kode_part : null,
-        ]);
-
         if (!$jadwalUjian) {
             // Return empty students data if no jadwal ujian found
-            $studentsData = [
-                'data' => [],
-                'current_page' => 1,
-                'last_page' => 1,
-                'per_page' => $perPage,
-                'total' => 0,
-            ];
+            $studentsData = collect([])->paginate((int)$pages);
 
             $stats = [
                 'total_students' => 0,
@@ -134,20 +112,16 @@ class MonitoringUjianController extends Controller
                 'ujian' => $transformedUjian,
                 'studentsData' => $studentsData,
                 'stats' => $stats,
+                'filters' => [
+                    'search' => $search,
+                    'status' => $status,
+                    'pages' => $pages,
+                ],
             ]);
         }
 
         // Parse kode_kelas to get participant IDs
         $participantIds = [];
-
-        // Debug: Log the jadwal ujian data
-        Log::info('JadwalUjian data:', [
-            'id_ujian' => $jadwalUjian->id_ujian,
-            'kode_kelas' => $jadwalUjian->kode_kelas,
-            'kode_kelas_type' => gettype($jadwalUjian->kode_kelas),
-            'kode_kelas_length' => strlen($jadwalUjian->kode_kelas ?? ''),
-            'kode_kelas_raw' => json_encode($jadwalUjian->kode_kelas),
-        ]);
 
         if ($jadwalUjian->kode_kelas) {
             // Trim whitespace and split by comma
@@ -170,12 +144,6 @@ class MonitoringUjianController extends Controller
             }
         }
 
-        // Debug: Log the parsed participant IDs
-        Log::info('Parsed participant IDs:', [
-            'participantIds' => $participantIds,
-            'count' => count($participantIds),
-        ]);
-
         // Get total questions from JadwalUjianSoal
         $jadwalUjianSoal = JadwalUjianSoal::where('id_ujian', $jadwalUjian->id_ujian)->first();
         $totalQuestions = $jadwalUjianSoal ? $jadwalUjianSoal->total_soal : 0;
@@ -188,13 +156,24 @@ class MonitoringUjianController extends Controller
                 return $query->whereHas('peserta', function ($q) use ($search) {
                     $q->where('nama', 'like', "%{$search}%");
                 });
+            })
+            ->when($status, function ($query, $status) {
+                if ($status === 'active') {
+                    return $query->where(function ($q) {
+                        $q->whereNull('nilai')->orWhere('nilai', '=', 0);
+                    });
+                } elseif ($status === 'finish') {
+                    return $query->where(function ($q) {
+                        $q->whereNotNull('nilai')->where('nilai', '>', 0);
+                    });
+                }
+                return $query;
             });
 
-        $pengerjaanList = $pengerjaanQuery->paginate($perPage);
+        $pengerjaanList = $pengerjaanQuery->paginate((int)$pages)->withQueryString();
 
         // Transform data for students table
-        $studentsData = $pengerjaanList->toArray();
-        $studentsData['data'] = collect($pengerjaanList->items())->map(function ($pengerjaan) use ($totalQuestions) {
+        $pengerjaanList->getCollection()->transform(function ($pengerjaan) use ($totalQuestions) {
             // Count completed questions from PengerjaanJawaban
             $completedQuestions = PengerjaanJawaban::where('id_pengerjaan', $pengerjaan->id_pengerjaan)->count();
 
@@ -212,16 +191,10 @@ class MonitoringUjianController extends Controller
                 'status' => $status,
                 'nilai' => $pengerjaan->nilai,
             ];
-        })->toArray();
+        });
 
         // Calculate statistics
         $totalParticipants = count($participantIds);
-
-        // Debug: Log statistics calculation
-        Log::info('Statistics calculation:', [
-            'participantIds' => $participantIds,
-            'totalParticipants' => $totalParticipants,
-        ]);
 
         $participantsInPengerjaan = 0;
         $finishedParticipants = 0;
@@ -239,38 +212,20 @@ class MonitoringUjianController extends Controller
 
         $activeParticipants = $participantsInPengerjaan - $finishedParticipants;
 
-        Log::info('Final statistics:', [
-            'participantsInPengerjaan' => $participantsInPengerjaan,
-            'finishedParticipants' => $finishedParticipants,
-            'activeParticipants' => $activeParticipants,
-        ]);
-
         $stats = [
             'total_students' => $totalParticipants,
             'active_students' => $activeParticipants,
             'finished_students' => $finishedParticipants,
-            'participantIds' => $participantIds,
         ];
 
         return Inertia::render('monitoring/detail', [
             'ujian' => $transformedUjian,
-            'studentsData' => $studentsData,
+            'studentsData' => $pengerjaanList,
             'stats' => $stats,
-            'debug' => [
-                'participantIds' => $participantIds,
-                'jadwalUjianSoal' => $jadwalUjianSoal,
-                'totalQuestions' => $totalQuestions,
-                'pengerjaanList' => $pengerjaanList->toArray(),
-                'finished_students' => $finishedParticipants,
-                'jadwalUjian' => [
-                    'id_ujian' => $jadwalUjian ? $jadwalUjian->id_ujian : null,
-                    'kode_kelas' => $jadwalUjian ? $jadwalUjian->kode_kelas : null,
-                    'kode_part' => $jadwalUjian ? $jadwalUjian->kode_part : null,
-                ],
-                'penjadwalan' => [
-                    'id_penjadwalan' => $penjadwalan->id_penjadwalan,
-                    'tipe_ujian' => $penjadwalan->tipe_ujian,
-                ],
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+                'pages' => $pages,
             ],
         ]);
     }
