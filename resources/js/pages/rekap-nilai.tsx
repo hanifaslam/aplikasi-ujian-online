@@ -462,32 +462,32 @@ const RekapNilai: React.FC<Props> = ({ initialData, filters }) => {
                 <CustomTable
                   columns={[
                     {
-                      label: 'Exam Type',
+                      label: 'Tipe Ujian',
                       className: 'w-[150px]',
                       render: (item: Ujian) => item.tipe,
                     },
                     {
-                      label: 'Exam Package',
+                      label: 'Paket Ujian',
                       className: 'w-[200px]',
                       render: (item: Ujian) => item.paket,
                     },
                     {
-                      label: 'Date',
+                      label: 'Tanggal',
                       className: 'w-[150px] text-center',
                       render: (item: Ujian) => item.tanggal,
                     },
                     {
-                      label: 'Start',
+                      label: 'Mulai',
                       className: 'w-[100px] text-center',
                       render: (item: Ujian) => item.mulai,
                     },
                     {
-                      label: 'End',
+                      label: 'Selesai',
                       className: 'w-[100px] text-center',
                       render: (item: Ujian) => item.selesai,
                     },
                     {
-                      label: 'Quota',
+                      label: 'Kuota',
                       className: 'w-[80px] text-center',
                       render: (item: Ujian) => item.kuota,
                     },
