@@ -46,27 +46,11 @@ class Token extends Model
     public static function updateFirstRowToken()
     {
         try {
-            \Log::info('=== MULAI UPDATE TOKEN DI MODEL ===');
-
-            // Cek koneksi database
-            $connection = DB::connection('data_db');
-            \Log::info('Menggunakan koneksi:', ['connection' => 'data_db']);
-
-            // Cek apakah record ada
-            $existingRecord = $connection->table('t_status')->where('id_status', 2)->first();
-            \Log::info('Record yang ditemukan:', ['record' => $existingRecord ? (array)$existingRecord : null]);
-
-            if (!$existingRecord) {
-                \Log::error('Record dengan id_status = 2 tidak ditemukan');
-                return null;
-            }
-
             // Generate token baru
             $newToken = self::generateRandomToken(6);
-            \Log::info('Token baru yang dibuat:', ['new_token' => $newToken]);
 
-            // Update langsung menggunakan DB query builder
-            $affected = $connection->table('t_status')
+            // Update langsung menggunakan DB query builder dengan koneksi yang benar
+            $affected = DB::connection('data_db')->table('t_status')
                 ->where('id_status', 2)
                 ->update([
                     'keterangan_status' => $newToken,
@@ -74,26 +58,15 @@ class Token extends Model
                     'status' => 1
                 ]);
 
-            \Log::info('Update result:', [
-                'affected_rows' => $affected,
-                'new_token' => $newToken
-            ]);
-
             if ($affected > 0) {
-                // Ambil record yang sudah diupdate untuk dikembalikan
+                // Ambil record yang sudah diupdate
                 $updatedRecord = self::where('id_status', 2)->first();
-                \Log::info('Record setelah update:', ['updated_record' => $updatedRecord ? $updatedRecord->toArray() : null]);
-
                 return $updatedRecord;
             }
 
-            \Log::error('Tidak ada baris yang terpengaruh dalam update');
             return null;
         } catch (\Exception $e) {
-            \Log::error('Error dalam updateFirstRowToken:', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            \Log::error('Error dalam updateFirstRowToken: ' . $e->getMessage());
             return null;
         }
     }

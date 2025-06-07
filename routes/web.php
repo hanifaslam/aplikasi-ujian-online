@@ -201,9 +201,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-    // Token routes
+    // Token routes - accessible by all authenticated users (no role restriction)
     Route::get('/token/current', [TokenController::class, 'getCurrentToken'])->name('token.current');
-    Route::post('/token/generate', [TokenController::class, 'generateNewToken'])->name('token.generate');
+    Route::get('/token/generate', [TokenController::class, 'generateNewToken'])->name('token.generate'); // Ubah POST menjadi GET
     Route::get('/token/copy', [TokenController::class, 'copyToken'])->name('token.copy');
 });
 require __DIR__ . '/settings.php';

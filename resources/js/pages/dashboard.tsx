@@ -86,14 +86,11 @@ export default function Dashboard() {
         try {
             console.log('Generating new token...');
             
-            // Gunakan route helper dari Laravel
+            // Gunakan GET request (tidak perlu CSRF)
             const response = await fetch(route('token.generate'), {
-                method: 'POST',
+                method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                    'X-Requested-With': 'XMLHttpRequest',
                 },
                 credentials: 'same-origin',
             });
