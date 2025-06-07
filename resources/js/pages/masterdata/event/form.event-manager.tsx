@@ -43,8 +43,7 @@ export default function EventForm() {
         },
         {
             title: isEdit ? 'Edit' : 'Create',
-            href: route(isEdit ? 'master-data.event.edit' : 'master-data.event.create', 
-                  isEdit ? event.id_event : ''),
+            href: route(isEdit ? 'master-data.event.edit' : 'master-data.event.create', isEdit ? event.id_event : ''),
         },
     ];
 
@@ -69,39 +68,31 @@ export default function EventForm() {
 
     function onSubmit(values: z.infer<typeof formSchema>) {
         if (isEdit) {
-            router.put(
-                route('master-data.event.update', event.id_event),
-                values,
-                {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        toast.success('Event berhasil diperbarui');
-                        router.visit(route('master-data.event.index'));
-                    },
-                    onError: (errors) => {
-                        Object.keys(errors).forEach(key => {
-                            toast.error(errors[key]);
-                        });
-                    },
+            router.put(route('master-data.event.update', event.id_event), values, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Event berhasil diperbarui');
+                    router.visit(route('master-data.event.index'));
                 },
-            );
+                onError: (errors) => {
+                    Object.keys(errors).forEach((key) => {
+                        toast.error(errors[key]);
+                    });
+                },
+            });
         } else {
-            router.post(
-                route('master-data.event.store'),
-                values,
-                {
-                    preserveScroll: true,
-                    onSuccess: () => {
-                        toast.success('Event berhasil ditambahkan');
-                        router.visit(route('master-data.event.index'));
-                    },
-                    onError: (errors) => {
-                        Object.keys(errors).forEach(key => {
-                            toast.error(errors[key]);
-                        });
-                    },
+            router.post(route('master-data.event.store'), values, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success('Event berhasil ditambahkan');
+                    router.visit(route('master-data.event.index'));
                 },
-            );
+                onError: (errors) => {
+                    Object.keys(errors).forEach((key) => {
+                        toast.error(errors[key]);
+                    });
+                },
+            });
         }
     }
 
@@ -111,11 +102,7 @@ export default function EventForm() {
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="space-between flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{isEdit ? 'Edit' : 'Create'} Event</h1>
-                    <CButton 
-                        type="primary" 
-                        className="md:w-24" 
-                        onClick={() => router.visit(route('master-data.event.index'))}
-                    >
+                    <CButton type="primary" className="md:w-24" onClick={() => router.visit(route('master-data.event.index'))}>
                         Kembali
                     </CButton>
                 </div>
@@ -136,7 +123,7 @@ export default function EventForm() {
                             )}
                         />
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <FormField
                                 control={form.control}
                                 name="mulai_event"
@@ -186,10 +173,7 @@ export default function EventForm() {
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Status</FormLabel>
-                                    <Select 
-                                        onValueChange={(value) => field.onChange(parseInt(value))}
-                                        defaultValue={field.value.toString()}
-                                    >
+                                    <Select onValueChange={(value) => field.onChange(parseInt(value))} defaultValue={field.value.toString()}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Pilih status" />

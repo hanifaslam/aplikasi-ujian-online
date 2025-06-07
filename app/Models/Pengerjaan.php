@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Pengerjaan extends Model
 {
+    protected $connection = 'data_db';
     protected $table = 't_pengerjaan';
     protected $primaryKey = 'id_pengerjaan';
     public $timestamps = false;
@@ -53,5 +54,15 @@ class Pengerjaan extends Model
     public function peserta()
     {
         return $this->belongsTo(Peserta::class, 'id_peserta', 'id');
+    }
+
+    public function jawaban()
+    {
+        return $this->hasMany(PengerjaanJawaban::class, 'id_pengerjaan', 'id_pengerjaan');
+    }
+
+    public function ujian()
+    {
+        return $this->belongsTo(JadwalUjian::class, 'id_ujian', 'id_ujian');
     }
 }
