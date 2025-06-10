@@ -17,6 +17,7 @@ use App\Http\Controllers\JenisUjianController;
 use App\Http\Controllers\BankSoalControllerCheckbox;
 use App\Http\Controllers\PaketSoalController;
 use App\Http\Controllers\PaketSoalEditController;
+use App\Http\Controllers\PesertaController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Models\Matakuliah;
@@ -206,5 +207,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/token/generate', [TokenController::class, 'generateNewToken'])->name('token.generate'); // Ubah POST menjadi GET
     Route::get('/token/copy', [TokenController::class, 'copyToken'])->name('token.copy');
 });
+
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
