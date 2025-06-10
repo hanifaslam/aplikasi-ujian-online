@@ -77,6 +77,16 @@ const items: MainNavItem[] = [
                 icon: BookA,
                 href: '/master-data/matakuliah',
             },
+            {
+                title: 'Event',
+                icon: BookA,
+                href: '/master-data/event',
+            },
+            {
+                title: 'Bank Soal Checkbox',
+                icon: BookA,
+                href: '/master-data/banksoalcheckbox',
+            },
         ],
     },
     {
@@ -103,7 +113,7 @@ const items: MainNavItem[] = [
     {
         title: 'Jadwal Ujian',
         icon: CalendarClock,
-        href: '/jadwal-ujian',
+        href: '/penjadwalan',
     },
     {
         title: 'Monitoring',

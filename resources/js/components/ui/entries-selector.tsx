@@ -1,4 +1,4 @@
-import { router } from "@inertiajs/react";
+import { router, usePage } from "@inertiajs/react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 
 interface EntriesSelectorProps {
@@ -8,12 +8,21 @@ interface EntriesSelectorProps {
     paramName?: string;
 }
 
+interface PageFilter {
+    order: string;
+    search?: string;
+    page?: number;
+}
+
 export function EntriesSelector({
     currentValue,
     options = [10, 25, 50, 100],
     routeName,
     paramName = "pages"
 }: EntriesSelectorProps) {
+    const filters = usePage().props.filters as PageFilter;
+    const currentPage = filters.page || 1;
+
     return (
         <div className="flex items-center gap-2">
             <p>Show</p>
@@ -21,7 +30,11 @@ export function EntriesSelector({
                 value={String(currentValue)}
                 onValueChange={(value) => {
                     router.visit(route(routeName), {
-                        data: { [paramName]: value },
+                        data: {
+                            [paramName]: value,
+                            page: currentPage,
+                            search: filters.search || '',
+                        },
                         preserveState: true,
                         preserveScroll: true,
                     });

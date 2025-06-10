@@ -2,62 +2,39 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Peserta extends Model
 {
-    use HasFactory;
-
-    // Kalau nama tabel kamu bukan 'users', kamu bisa aktifkan ini:
+    protected $connection = 'data_db';
+    // Nama tabel (kalau tidak mengikuti konvensi Laravel)
     protected $table = 't_peserta';
 
-    // Kalau tidak pakai timestamps (created_at, updated_at)
+    // Primary key
+    protected $primaryKey = 'id';
+
+    // Jika tidak pakai timestamps (created_at dan updated_at)
     public $timestamps = false;
 
+    // Kolom yang bisa diisi mass-assignment
     protected $fillable = [
         'username',
         'password',
-        'status',
+        'status', // yang dipake itu status ya bukan aktif
         'jurusan',
         'nis',
         'nama',
-        'aktif',
     ];
 
-    protected $hidden = [
-        'password',
-    ];
-
+    // (Opsional) Cast agar tipe data otomatis dikonversi sesuai
     protected $casts = [
+        'id' => 'integer',
         'status' => 'integer',
         'jurusan' => 'integer',
-        'aktif' => 'boolean',
     ];
 
-    // Scope query untuk user aktif
-    public function scopeAktif($query)
+    public function jurusanRef()
     {
-        return $query->where('aktif', true);
+        return $this->belongsTo(Jurusan::class, 'jurusan', 'id_jurusan');
     }
-
-    // Mutator: hash password setiap diisi/update
-    protected static function booted()
-    {
-        static::creating(function ($user) {
-            $user->password = bcrypt($user->password);
-        });
-
-        static::updating(function ($user) {
-            if ($user->isDirty('password')) {
-                $user->password = bcrypt($user->password);
-            }
-        });
-    }
-
-    // Contoh relasi jika jurusan adalah tabel lain
-    // public function jurusanRelasi()
-    // {
-    //     return $this->belongsTo(Jurusan::class, 'jurusan', 'id');
-    // }
 }

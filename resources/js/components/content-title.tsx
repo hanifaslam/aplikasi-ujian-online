@@ -8,7 +8,9 @@ interface ContentTitleProps {
     buttonIcon?: React.ReactNode;
     buttonType?: 'primary' | 'danger';
     showButton?: boolean;
+    showIcon?: boolean;
     onButtonClick?: () => void;
+    extraButtons?: React.ReactNode;
 }
 
 export function ContentTitle({
@@ -17,19 +19,24 @@ export function ContentTitle({
     buttonIcon = <Plus />,
     buttonType = 'primary',
     showButton = true,
+    showIcon = true,
     onButtonClick,
+    extraButtons,
 }: ContentTitleProps) {
     return (
         <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">{title}</h1>
-            {showButton && (
-                <CButton type={buttonType} onClick={onButtonClick}>
-                    <div className="flex items-center gap-1">
-                        {buttonIcon}
-                        {buttonText && <span>{buttonText}</span>}
-                    </div>
-                </CButton>
-            )}
+            <div className="flex items-center gap-2">
+                {extraButtons}
+                {showButton && (
+                    <CButton type={buttonType} onClick={onButtonClick}>
+                        <div className="flex items-center gap-1 px-2">
+                            {showIcon && buttonIcon}
+                            {buttonText && <span>{buttonText}</span>}
+                        </div>
+                    </CButton>
+                )}
+            </div>
         </div>
     );
 }
