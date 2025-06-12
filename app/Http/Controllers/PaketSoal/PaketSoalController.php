@@ -10,5 +10,9 @@ use Illuminate\Support\Facades\Log;
 
 class PaketSoalController extends Controller
 {
+    public function index(Request $request)
+    {
+        
+    }
     
 }

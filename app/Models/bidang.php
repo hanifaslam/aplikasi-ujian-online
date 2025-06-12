@@ -26,8 +26,8 @@ class Bidang extends Model
         return $this->hasMany(JadwalUjianSoal::class, 'kd_bidang', 'kode');
     }
 
-    public function event()
+    public function jadwal_ujian()
     {
-        return $this->hasMany(Event::class, 'nama_event', 'kode');
+        return $this->hasMany(JadwalUjian::class, 'kode_part', 'kode');
     }
 }

@@ -16,7 +16,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\JenisUjianController;
 use App\Http\Controllers\BankSoalControllerCheckbox;
 use App\Http\Controllers\PaketSoalController;
-use App\Http\Controllers\PaketSoalEditController;
+use App\Http\Controllers\PaketSoal\PaketSoalEditController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Models\Matakuliah;
@@ -25,6 +25,20 @@ use App\Http\Controllers\DosenManagerController;
 use App\Http\Controllers\DosenManagerEditController;
 use App\Http\Controllers\DosenImportController;
 use App\Http\Controllers\TokenController;
+use App\Http\Controllers\MasterData\BidangController;
+use App\Http\Controllers\PaketSoal\MakeEventController;
+
+Route::prefix('event')->name('event.')->group(function () {
+    Route::get('/create', [MakeEventController::class, 'create'])->name('create');
+    Route::post('/store', [MakeEventController::class, 'store'])->name('store');
+});
+
+Route::get('/bidangs', [BidangController::class, 'index']); // dropdown bidang
+Route::get('/paket-soal/create', function () {
+    return Inertia::render('master-data/paket-soal/CreatePaketSoal');
+})->name('paket-soal.create');
+
+Route::post('/paket-soal', [PaketSoalEditController::class, 'store'])->name('paket-soal.store');
 
 // Custom route binding untuk Matakuliah model
 Route::bind('matakuliah', function ($value) {
@@ -68,9 +82,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return redirect()->route('dashboard');
         })->name('index');
 
-        Route::get('peserta', function () {
-            return Inertia::render('peserta');
-        })->name('peserta');
+        // Route::get('peserta', function () {
+        //     return Inertia::render('peserta');
+        // })->name('peserta');
 
         Route::get('dosen', function () {
             return Inertia::render('dosen');
@@ -135,7 +149,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return Inertia::render('banksoalcreate');
         })->name('bank.soal.create');
         // Route edit bank soal
-        Route::put('bank-soal/{id}', [BankSoalController::class, 'update'])->name('bank.soal.update');
+        //Route::put('bank-soal/{id}', [BankSoalController::class, 'update'])->name('bank.soal.update');
         Route::get('bank-soal/{id}/edit', [BankSoalController::class, 'edit'])->name('bank.soal.edit');
 
         Route::post('bank-soal', [BankSoalController::class, 'store'])->name('bank.soal.store');
