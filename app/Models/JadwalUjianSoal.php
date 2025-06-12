@@ -34,4 +34,9 @@ class JadwalUjianSoal extends Model
     {
         return $this->belongsTo(JadwalUjian::class, 'id_ujian', 'id_ujian');
     }
+
+    public function bidang()
+    {
+        return $this->belongsTo(Bidang::class, 'kd_bidang', 'kode');
+    }
 }

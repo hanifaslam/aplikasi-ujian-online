@@ -17,8 +17,17 @@ class Bidang extends Model
         'type',
     ];
 
-    public function paket_soal()
+    // public function paket_soal()
+    // {
+    //     return $this->hasOne(PaketSoal::class, 'kode_bidang', 'kode');
+    // }
+
+    public function jadwal_ujian_soal(){
+        return $this->hasMany(JadwalUjianSoal::class, 'kd_bidang', 'kode');
+    }
+
+    public function event()
     {
-        return $this->hasOne(PaketSoal::class, 'kode_bidang', 'kode');
+        return $this->hasMany(Event::class, 'nama_event', 'kode');
     }
 }

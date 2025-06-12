@@ -34,4 +34,9 @@ class Event extends Model
     {
         return $this->hasMany(Penjadwalan::class, 'id_paket_ujian', 'id_event');
     }
+
+    public function bidang()
+    {
+        return $this->belongsTo(Bidang::class, 'nama_event', 'kode');
+    }
 }
