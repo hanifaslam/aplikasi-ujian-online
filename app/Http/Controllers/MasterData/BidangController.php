@@ -13,6 +13,6 @@ class BidangController extends Controller
      */
     public function index()
     {
-        return response()->json(Bidang::select('kode', 'nama_bidang')->get());
+        return response()->json(Bidang::select('kode', 'nama')->get());
     }
 }
