@@ -64,4 +64,11 @@ class MakeEventController extends Controller
     {
         // Logic to delete an existing event
     }
+
+    public function list()
+    {
+        // Ambil semua event, bisa tambahkan where jika ingin filter tertentu
+        $events = \App\Models\Event::select('id_event', 'nama_event')->get();
+        return response()->json($events);
+    }
 }

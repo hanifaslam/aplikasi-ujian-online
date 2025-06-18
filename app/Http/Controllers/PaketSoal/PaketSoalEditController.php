@@ -35,8 +35,6 @@ class PaketSoalEditController extends Controller
             'nama_ujian' => 'required|string|max:255',
             'id_event' => 'required|integer|exists:data_db.t_event,id_event',
             'kode_part' => 'required|integer|exists:data_db.m_bidang,kode',
-            'soal' => 'required|array',
-            'soal.*' => 'required|integer|exists:data_db.m_soal,ids',
         ]);
 
         $kode_kelas = null;
@@ -48,10 +46,13 @@ class PaketSoalEditController extends Controller
             'kode_part' => $request->input('kode_part'),
         ]);
 
+        $ujiaSoal = 0;
+        $totalSoal = 0;
         $jadwalUjianSoal = JadwalUjianSoal::create([
+            'id_ujian' => $jadwalUjian->id_ujian,
             'kd_bidang' => $request->input('kode_part'),
-            'total_soal' => count($request->input('soal')),
-            'ujian_soal' => $request->input('soal'),
+            'total_soal' => $totalSoal,
+            'ujian_soal' => $ujiaSoal
         ]);
 
         // Redirect ke halaman index atau create lagi
@@ -60,7 +61,7 @@ class PaketSoalEditController extends Controller
 
     public function create()
     {
-        // Jika pakai Inertia:
+        // Memanggil view inertia untuk halaman create paket soal
         return Inertia::render('master-data/paket-soal/CreatePaketSoal');
     }
 }

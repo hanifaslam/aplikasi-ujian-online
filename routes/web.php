@@ -219,6 +219,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/token/current', [TokenController::class, 'getCurrentToken'])->name('token.current');
     Route::get('/token/generate', [TokenController::class, 'generateNewToken'])->name('token.generate'); // Ubah POST menjadi GET
     Route::get('/token/copy', [TokenController::class, 'copyToken'])->name('token.copy');
+
+    Route::get('/events/list', [\App\Http\Controllers\PaketSoal\MakeEventController::class, 'list']);
 });
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
