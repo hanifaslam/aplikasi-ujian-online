@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import AppLayout from '@/layouts/app-layout';
 import { PageFilter, PaginatedResponse } from '@/types';
 import { Head, router } from '@inertiajs/react';
-import { Trash2 } from 'lucide-react';
+import { RotateCcw, Trash2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -197,7 +197,15 @@ function StudentTable({
             label: 'Action',
             className: 'w-[100px] text-center',
             render: () => (
-                <div className="flex justify-center">
+                <div className="flex justify-center gap-4">
+                    <CButtonIcon
+                        icon={RotateCcw}
+                        type="danger"
+                        className="cursor-not-allowed opacity-50"
+                        onClick={() => {
+                            toast.info('Reset functionality is currently disabled');
+                        }}
+                    />
                     <CButtonIcon
                         icon={Trash2}
                         type="danger"
