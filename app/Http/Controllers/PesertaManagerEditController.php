@@ -93,7 +93,7 @@ class PesertaManagerEditController extends Controller
 
         $page = $request->input('page', 1);
         return redirect()->route('master-data.peserta.manager', ['page' => $page])
-            ->with('success', 'Peserta & data terkait berhasil diupdate');
+            ->with('success', 'Peserta berhasil diupdate');
     }
 
     public function create()
@@ -162,6 +162,6 @@ class PesertaManagerEditController extends Controller
         $lastPage = ceil($total / $perPage);
 
         return redirect()->route('master-data.peserta.manager', ['page' => $lastPage])
-            ->with('success', 'Peserta & data terkait berhasil ditambahkan');
+            ->with('success', 'Peserta berhasil ditambahkan');
     }
 }
