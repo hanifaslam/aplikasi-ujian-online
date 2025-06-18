@@ -201,12 +201,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
-
-    // tambahan
-    Route::get('/add-participant', function () {
-        return Inertia::render('AddParticipantForm');
-    })->name('add.participant');
-
     // Token routes - accessible by all authenticated users (no role restriction)
     Route::get('/token/current', [TokenController::class, 'getCurrentToken'])->name('token.current');
     Route::get('/token/generate', [TokenController::class, 'generateNewToken'])->name('token.generate'); // Ubah POST menjadi GET
