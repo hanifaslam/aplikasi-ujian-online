@@ -126,7 +126,7 @@ const items: MainNavItem[] = [
 
 export function AppSidebar() {
     return (
-        <Sidebar collapsible="icon" variant="inset" className="shadow-xl shadow-black/50">
+        <Sidebar collapsible="icon" defaultChecked variant="inset" className="shadow-xl shadow-black/50">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
