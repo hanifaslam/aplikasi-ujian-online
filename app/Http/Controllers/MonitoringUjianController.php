@@ -163,6 +163,9 @@ class MonitoringUjianController extends Controller
                 ->with('error', 'Exam not found.');
         }
 
+        // Add nama_ujian to the transformed ujian data
+        $transformedUjian['nama_ujian'] = $jadwalUjian->nama_ujian;
+
         // Parse kode_kelas to get participant IDs
         $participantIds = [];
         if ($jadwalUjian->kode_kelas) {
@@ -196,6 +199,7 @@ class MonitoringUjianController extends Controller
                     'search' => $search,
                     'status' => $status,
                     'pages' => $pages,
+                    'exam_id' => $examId, // Include exam_id in filters
                 ],
             ]);
         }

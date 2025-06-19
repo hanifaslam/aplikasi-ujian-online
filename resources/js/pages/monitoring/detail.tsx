@@ -1,6 +1,6 @@
 import { ContentTitle } from '@/components/content-title';
 import { StatCard } from '@/components/stat-card';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { PageFilter, PaginatedResponse } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -31,6 +31,7 @@ interface Ujian {
     id: number;
     tipe_ujian: string;
     paket_ujian: string;
+    nama_ujian?: string;
     kelas_prodi: string;
     tanggal_ujian: string;
     mulai: string;
@@ -215,7 +216,7 @@ export default function Detail({ ujian, studentsData, stats, filters, flash, err
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Detail ${ujian.paket_ujian}`} />
+            <Head title={`Detail ${ujian.nama_ujian || 'Ujian'}`} />
 
             <div className="flex flex-col gap-4 p-4">
                 <ContentTitle
@@ -227,8 +228,7 @@ export default function Detail({ ujian, studentsData, stats, filters, flash, err
                 />
                 <Card className="flex flex-col gap-4 p-4">
                     <CardHeader>
-                        <CardTitle className="text-2xl">{ujian.paket_ujian}</CardTitle>
-                        <CardDescription>{ujian.tipe_ujian}</CardDescription>
+                        <CardTitle className="text-2xl">{ujian.nama_ujian || 'Nama Ujian Tidak Tersedia'}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="flex w-full gap-2">
