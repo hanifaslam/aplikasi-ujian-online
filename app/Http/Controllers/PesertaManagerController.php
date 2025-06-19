@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Peserta;
+use Illuminate\Support\Facades\DB;
 
 class PesertaManagerController extends Controller
 {
@@ -52,9 +53,20 @@ class PesertaManagerController extends Controller
 
     public function delete(Request $request, Peserta $peserta)
     {
-        $peserta->delete();
+        $nis = $peserta->nis;
 
-        return redirect()->back()->with('success', 'Data berhasil dihapus');
+        DB::transaction(function () use ($peserta, $nis) {
+            // 1. Hapus dari t_peserta
+            $peserta->delete();
+
+            // 2. Hapus dari tblsiswa
+            DB::connection('data_db')->table('tblsiswa')->where('nis', $nis)->delete();
+
+            // 3. Hapus dari tblkelas
+            DB::connection('data_db')->table('tblkelas')->where('Kelas', $nis)->delete();
+        });
+
+        return redirect()->back()->with('success', 'Peserta dan data terkait berhasil dihapus');
     }
 
     public function update(Request $request, Peserta $peserta)
