@@ -49,7 +49,7 @@ export default function UserManager() {
                     <ContentTitle title="Data Dosen" showButton={false} />
                     <div className="flex gap-2">
                         <button
-                            onClick={() => router.visit(route('master-data.import.view'))}
+                            onClick={() => router.visit(route('master-data.import-dosen.view'))}
                             className="rounded bg-green-600 px-4 py-2 text-white shadow hover:bg-green-700"
                         >
                             Import
