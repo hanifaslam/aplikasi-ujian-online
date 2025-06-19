@@ -27,11 +27,15 @@ use App\Http\Controllers\DosenImportController;
 use App\Http\Controllers\TokenController;
 use App\Http\Controllers\MasterData\BidangController;
 use App\Http\Controllers\PaketSoal\MakeEventController;
+use App\Http\Controllers\PaketSoal\AddSoalController;
 
 Route::prefix('event')->name('event.')->group(function () {
     Route::get('/create', [MakeEventController::class, 'create'])->name('create');
     Route::post('/store', [MakeEventController::class, 'store'])->name('store');
+    Route::get('/list', [MakeEventController::class, 'index'])->name('list');
 });
+
+Route::get('/paket-soal/list', [\App\Http\Controllers\PaketSoal\PaketSoalController::class, 'list']);
 
 Route::get('/bidangs', [BidangController::class, 'index']); // dropdown bidang
 Route::get('/paket-soal/create', function () {
@@ -45,9 +49,15 @@ Route::bind('matakuliah', function ($value) {
     return Matakuliah::where('id_mk', $value)->firstOrFail();
 });
 
+// Custom binding agar {paket_soal} resolve ke JadwalUjianSoal berdasarkan id_ujian
+Route::bind('paket_soal', function ($value) {
+    return \App\Models\JadwalUjianSoal::where('id_ujian', $value)->firstOrFail();
+});
+
 Route::get('/', function () {
     return Inertia::render('auth/login');
 })->name('home');
+Route::get('/paket-soal/add-soal', [AddSoalController::class, 'showAddSoalForm'])->name('paket-soal.add-soal');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // yang perlu diinget, buat name yang punya nama lebih dari 1 kata, contohnya monitoring-ujian

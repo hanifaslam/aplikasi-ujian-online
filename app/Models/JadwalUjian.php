@@ -48,4 +48,6 @@ class JadwalUjian extends Model
     {
         return $this->belongsTo(Bidang::class, 'kode_part', 'kode');
     }
+
+    
 }
