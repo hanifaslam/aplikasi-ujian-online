@@ -184,7 +184,13 @@ export default function BankSoalCheckbox() {
         {paketSoal && (
           <button
             onClick={handleSave}
-            className="mt-4 self-start rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+            disabled={selectedSoalIds.length === 0}
+            className={`mt-4 self-start rounded px-4 py-2 text-white ${
+              selectedSoalIds.length === 0
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+            
           >
             Simpan Checklist Soal
           </button>
@@ -240,7 +246,7 @@ function OrderFilter({ defaultValue }: { defaultValue: string }) {
 
   const handleChange = (selected: string) => {
     setOrder(selected);
-    router.visit(route('master-data.bank-soal'), {
+    router.visit(route('master-data.bank-soal-checkbox.update'), {
       data: {
         order: selected,
         search: filters.search || '',
@@ -393,3 +399,4 @@ function BankSoalTable({
     </div>
   );
 }
+

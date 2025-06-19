@@ -2,7 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { List, Pencil, Trash2 } from 'lucide-react';
+import { List, Pencil, Trash2, Plus } from 'lucide-react';
 
 import { CAlertDialog } from '@/components/c-alert-dialog';
 import { ContentTitle } from '@/components/content-title';
@@ -76,12 +76,28 @@ export default function PaketSoalManager() {
     },
     {
       label: 'Action',
-      className: 'text-center w-[150px]',
+      className: 'text-center w-[200px]',
       render: (d: typeof data[0]) => (
         <div className="flex justify-center gap-2">
-          <CButtonIcon icon={List} className="bg-yellow-500" onClick={() => router.visit(`/master-data/paket-soal/${d.id}/detail`)} />
-          <CButtonIcon icon={Pencil} onClick={() => router.visit(`/master-data/paket-soal/${d.id}/edit`)} />
-          <CButtonIcon icon={Trash2} type="danger" onClick={() => handleDelete(d.id)} />
+          <CButtonIcon
+            icon={Plus}
+            className="bg-green-600"
+            onClick={() => router.visit(`/master-data/bank-soal-checkbox/${d.id}/edit`)}
+          />
+          <CButtonIcon
+            icon={List}
+            className="bg-yellow-500"
+            onClick={() => router.visit(`/master-data/paket-soal/${d.id}/detail`)}
+          />
+          <CButtonIcon
+            icon={Pencil}
+            onClick={() => router.visit(`/master-data/paket-soal/${d.id}/edit`)}
+          />
+          <CButtonIcon
+            icon={Trash2}
+            type="danger"
+            onClick={() => handleDelete(d.id)}
+          />
         </div>
       ),
     },

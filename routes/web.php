@@ -187,6 +187,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         Route::get('/kategorisoal', [BankSoalController::class, 'getKategoriSoal']);
+
+        Route::get('/bank-soal-checkbox/{paket_soal}/edit', [BankSoalControllerCheckbox::class, 'edit'])->name('bank-soal-checkbox.edit');
+        Route::put('/bank-soal-checkbox/{paket_soal}', [BankSoalControllerCheckbox::class, 'update'])->name('bank-soal-checkbox.update');
     });
 
     Route::middleware(['role:super_admin'])->prefix('user-management')->name('user-management.')->group(function () {
