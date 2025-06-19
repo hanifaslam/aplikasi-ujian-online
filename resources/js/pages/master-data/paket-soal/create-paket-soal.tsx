@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,6 +16,12 @@ const formSchema = z.object({
 });
 
 export default function CreatePaketSoal() {
+  // Ambil data dari props inertia
+  const { events = [], bidangs = [] } = (usePage().props as unknown) as {
+    events: { id_event: number; nama_event: string }[];
+    bidangs: { kode: number; nama: string }[];
+  };
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -31,8 +37,12 @@ export default function CreatePaketSoal() {
   ];
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    router.post('/master-data/paket-soal', values, {
+    // Kirim ke backend dengan nama field yang sesuai validasi backend
+    router.post('/master-data/paket-soal', {
+      nama_ujian: values.nama,
+      id_event: values.event,
+      kode_part: values.bidang,
+    }, {
       onSuccess: () => toast.success('Paket soal berhasil disimpan!'),
       onError: () => toast.error('Gagal menyimpan paket soal.'),
     });
@@ -74,8 +84,11 @@ export default function CreatePaketSoal() {
                   <FormControl>
                     <select {...field} className="w-full rounded-md border border-gray-300 p-2">
                       <option value="">Pilih Event</option>
-                      <option value="tryout">Tryout Nasional</option>
-                      <option value="uts">UTS Semester Genap</option>
+                      {events.map(ev => (
+                        <option key={ev.id_event} value={ev.id_event}>
+                          {ev.nama_event}
+                        </option>
+                      ))}
                     </select>
                   </FormControl>
                   <FormMessage />
@@ -92,9 +105,11 @@ export default function CreatePaketSoal() {
                   <FormControl>
                     <select {...field} className="w-full rounded-md border border-gray-300 p-2">
                       <option value="">Pilih Bidang</option>
-                      <option value="listening">Listening</option>
-                      <option value="structure">Structure</option>
-                      <option value="reading">Reading</option>
+                      {bidangs.map(bd => (
+                        <option key={bd.kode} value={bd.kode}>
+                          {bd.nama}
+                        </option>
+                      ))}
                     </select>
                   </FormControl>
                   <FormMessage />

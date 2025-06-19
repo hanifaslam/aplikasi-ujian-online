@@ -61,7 +61,12 @@ class PaketSoalEditController extends Controller
 
     public function create()
     {
-        // Memanggil view inertia untuk halaman create paket soal
-        return Inertia::render('master-data/paket-soal/CreatePaketSoal');
+        $events = Event::select('id_event', 'nama_event')->get();
+        $bidangs = Bidang::select('kode', 'nama')->get();
+
+        return Inertia::render('master-data/paket-soal/create-paket-soal', [
+            'events' => $events,
+            'bidangs' => $bidangs,
+        ]);
     }
 }
