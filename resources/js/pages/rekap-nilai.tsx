@@ -25,10 +25,9 @@ interface Ujian {
 interface Student {
   no: number;
   nama: string;
-  listening: number;
-  struktur: number;
-  reading: number;
-  benar: string;
+  jumlah_soal: number;
+  soal_benar: number;
+  soal_salah: number;
   nilai: number;
 }
 
@@ -150,18 +149,17 @@ const RekapNilai: React.FC<Props> = ({ initialData, filters }) => {
       return;
     }
     let totalBenar = 0;
-    let totalSoal = 0;
+    let totalSalah = 0;
     let totalScore = 0;
     filtered.forEach((student) => {
-      const [benar, total] = student.benar.split('/').map(Number);
-      totalBenar += benar;
-      totalSoal += total;
+      totalBenar += student.soal_benar;
+      totalSalah += student.soal_salah;
       totalScore += student.nilai;
     });
     const count = filtered.length;
     setAverageScores({
       benar: count ? Math.round(totalBenar / count) : 0,
-      salah: count ? Math.round((totalSoal - totalBenar) / count) : 0,
+      salah: count ? Math.round(totalSalah / count) : 0,
       score: count ? Math.round(totalScore / count) : 0
     });
   }, [studentData, studentSearchTerm, selectedUjian]);
@@ -243,15 +241,13 @@ const RekapNilai: React.FC<Props> = ({ initialData, filters }) => {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {filteredStudentData.map((student) => {
-            const [benar, total] = student.benar.split('/').map(Number);
-            const salah = total - benar;
             return (
               <tr key={student.no} className="hover:bg-gray-50">
                 <td className="px-4 py-3 text-sm text-gray-500">{student.no}</td>
                 <td className="px-4 py-3 text-sm font-medium text-gray-900">{student.nama}</td>
-                <td className="px-4 py-3 text-sm text-center">{total}</td>
-                <td className="px-4 py-3 text-sm text-center text-green-600">{benar}</td>
-                <td className="px-4 py-3 text-sm text-center text-red-600">{salah}</td>
+                <td className="px-4 py-3 text-sm text-center">{student.jumlah_soal}</td>
+                <td className="px-4 py-3 text-sm text-center text-green-600">{student.soal_benar}</td>
+                <td className="px-4 py-3 text-sm text-center text-red-600">{student.soal_salah}</td>
                 <td className="px-4 py-3 text-sm text-center font-medium text-gray-900">{student.nilai}</td>
               </tr>
             );

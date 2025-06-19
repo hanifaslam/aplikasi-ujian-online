@@ -38,7 +38,7 @@ const ScoreChart: React.FC<ScoreChartProps> = ({ averageScores }) => {
             },
             title: {
                 display: true,
-                text: 'Rata-rata Soal Benar, Salah, dan Score',
+                text: 'Rata-Rata Soal Benar, Salah, dan Score',
                 font: {
                     size: 16,
                     weight: 'bold' as const
@@ -51,7 +51,7 @@ const ScoreChart: React.FC<ScoreChartProps> = ({ averageScores }) => {
             tooltip: {
                 callbacks: {
                     label: function(tooltipItem: TooltipItem<'bar'>) {
-                        return `Jumlah: ${tooltipItem.raw}`;
+                        return `Rata-Rata: ${tooltipItem.raw}`;
                     }
                 }
             }
@@ -85,7 +85,7 @@ const ScoreChart: React.FC<ScoreChartProps> = ({ averageScores }) => {
     };
 
     const data = {
-        labels: ['Soal Benar', 'Soal Salah', 'Rata-rata Score'],
+        labels: ['Soal Benar', 'Soal Salah', 'Score'],
         datasets: [
             {
                 label: 'Jumlah',
