@@ -54,11 +54,19 @@ Route::get('/paket-soal/add-soal', [AddSoalController::class, 'showAddSoalForm']
 Route::get('/', fn () => Inertia::render('auth/login'))->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', fn () => Inertia::render('dashboard'))->name('dashboard');
+    // yang perlu diinget, buat name yang punya nama lebih dari 1 kata, contohnya monitoring-ujian
+    // itu harus diubah jadi pake titik, contoh monitoring.ujian
+    // jadi nanti di route name-nya jadi monitoring.ujian
 
-    // Monitoring
-    Route::get('monitoring-ujian', [MonitoringUjianController::class, 'index'])->name('monitoring.ujian');
-    Route::get('monitoring-ujian/{id}', [MonitoringUjianController::class, 'show'])->name('monitoring.ujian.detail');
+    Route::get('dashboard', function () {
+        return Inertia::render('dashboard');
+    })->name('dashboard');
+
+    Route::get('monitoring-ujian', [App\Http\Controllers\MonitoringUjianController::class, 'index'])->name('monitoring.ujian');
+    Route::get('monitoring-ujian/{id}/preview', [App\Http\Controllers\MonitoringUjianController::class, 'preview'])->name('monitoring.ujian.preview');
+    Route::get('monitoring-ujian/{id}', [App\Http\Controllers\MonitoringUjianController::class, 'show'])->name('monitoring.ujian.detail');
+    Route::post('monitoring-ujian/{id}/reset-participant', [App\Http\Controllers\MonitoringUjianController::class, 'resetParticipant'])->name('monitoring.ujian.reset');
+    Route::post('monitoring-ujian/{id}/delete-participant', [App\Http\Controllers\MonitoringUjianController::class, 'deleteParticipant'])->name('monitoring.ujian.delete');
 
     // Penjadwalan
     Route::prefix('penjadwalan')->name('penjadwalan.')->group(function () {
