@@ -45,6 +45,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('monitoring-ujian', [App\Http\Controllers\MonitoringUjianController::class, 'index'])->name('monitoring.ujian');
+    Route::get('monitoring-ujian/{id}/preview', [App\Http\Controllers\MonitoringUjianController::class, 'preview'])->name('monitoring.ujian.preview');
     Route::get('monitoring-ujian/{id}', [App\Http\Controllers\MonitoringUjianController::class, 'show'])->name('monitoring.ujian.detail');
 
     Route::prefix('penjadwalan')->name('penjadwalan.')->group(function () {
