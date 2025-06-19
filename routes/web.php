@@ -179,7 +179,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         Route::prefix('event')->name('event.')->group(function () {
-            Route::get('/', fn () => Inertia::render('master-data/event/EventManager'))->name('manager');
+            Route::get('/', [MakeEventController::class, 'getEvent'])->name('getEvent');
+            Route::get('/create', [MakeEventController::class, 'create'])->name('create');
+            Route::post('/store', [MakeEventController::class, 'store'])->name('store');
         });
 
         Route::get('/kategorisoal', [BankSoalController::class, 'getKategoriSoal']);

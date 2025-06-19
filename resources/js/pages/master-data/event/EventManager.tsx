@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { List, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,33 +15,26 @@ import { EntriesSelector } from '@/components/ui/entries-selector';
 const breadcrumbs = [{ title: 'Event', href: '/master-data/event' }];
 
 interface EventType {
-    id: number;
-    nama: string;
-    status: 'aktif' | 'tidak-aktif';
+    id_event: number;
+    nama_event: string;
+    status: number;
 }
 
-const dummyData: EventType[] = [
-    { id: 1, nama: 'Tryout Nasional', status: 'aktif' },
-    { id: 2, nama: 'Simulasi CBT', status: 'tidak-aktif' },
-    { id: 3, nama: 'Ujian Tengah Semester', status: 'aktif' },
-    { id: 4, nama: 'TOEFL Internal', status: 'aktif' },
-    { id: 5, nama: 'Remedial TEPPS', status: 'tidak-aktif' },
-];
-
 export default function EventManager() {
+    // Ambil data events dari props inertia, fallback ke array kosong jika undefined/null
+    const { events } = (usePage().props as unknown) as { events?: EventType[] };
+    const safeEvents = events ?? [];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Data Event" />
-
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <ContentTitle title="Data Event" showButton onButtonClick={() => alert('Tambah Event')} />
-
                 <div className="mt-4 flex items-center justify-between">
                     <EntriesSelector currentValue={10} options={[10, 25, 50]} routeName="#" />
                     <SearchInputMenu defaultValue={''} routeName="#" />
                 </div>
-
-                <EventTable data={dummyData} />
+                <EventTable data={safeEvents} />
             </div>
         </AppLayout>
     );
@@ -66,39 +59,37 @@ function EventTable({ data }: { data: EventType[] }) {
             label: 'ID',
             className: 'text-center w-[100px]',
             render: (event: EventType) => (
-                <div className="text-center font-medium">{event.id}</div>
+                <div className="text-center font-medium">{event.id_event}</div>
             ),
         },
         {
             label: 'Nama Event',
             className: 'text-left w-[400px]',
-            render: (event: EventType) => <div>{event.nama}</div>,
+            render: (event: EventType) => <div>{event.nama_event}</div>,
         },
-            {
-    label: 'Status',
-    className: 'text-center w-[200px]',
-    render: (event: EventType) => (
-        <div className="flex justify-center">
-        <span
-            className={`px-3 py-1 rounded text-white font-semibold text-sm ${
-            event.status === 'aktif' ? 'bg-green-600' : 'bg-red-600'
-            }`}
-        >
-            {event.status === 'aktif' ? 'Active' : 'Inactive'}
-        </span>
-        </div>
-    ),
-    },  
-
-
+        {
+            label: 'Status',
+            className: 'text-center w-[200px]',
+            render: (event: EventType) => (
+                <div className="flex justify-center">
+                    <span
+                        className={`px-3 py-1 rounded text-white font-semibold text-sm ${
+                            event.status === 1 ? 'bg-green-600' : 'bg-red-600'
+                        }`}
+                    >
+                        {event.status === 1 ? 'Active' : 'Inactive'}
+                    </span>
+                </div>
+            ),
+        },
         {
             label: 'Action',
             className: 'text-center w-[150px]',
             render: (event: EventType) => (
                 <div className="flex justify-center gap-2">
-                    <CButtonIcon icon={List} className="bg-yellow-500" onClick={() => alert(`Detail event ${event.id}`)} />
-                    <CButtonIcon icon={Pencil} onClick={() => alert(`Edit event ${event.id}`)} />
-                    <CButtonIcon icon={Trash2} type="danger" onClick={() => handleDelete(event.id)} />
+                    <CButtonIcon icon={List} className="bg-yellow-500" onClick={() => alert(`Detail event ${event.id_event}`)} />
+                    <CButtonIcon icon={Pencil} onClick={() => alert(`Edit event ${event.id_event}`)} />
+                    <CButtonIcon icon={Trash2} type="danger" onClick={() => handleDelete(event.id_event)} />
                 </div>
             ),
         },
@@ -107,7 +98,7 @@ function EventTable({ data }: { data: EventType[] }) {
     return (
         <>
             <CustomTable columns={columns} data={data} />
-            <PaginationWrapper currentPage={1} lastPage={1} perPage={10} total={data.length} onNavigate={() => {}} />
+            <PaginationWrapper currentPage={1} lastPage={1} perPage={10} total={data ? data.length : 0} onNavigate={() => {}} />
             <CAlertDialog open={open} setOpen={setOpen} onContinue={confirmDelete} />
         </>
     );

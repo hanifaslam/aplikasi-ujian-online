@@ -18,7 +18,7 @@ class MakeEventController extends Controller
 
     public function create()
     {
-        return Inertia::render('master-data/paket-soal/CreateEvent', [
+        return Inertia::render('master-data/paket-soal/create-event', [
             'event' => null,
         ]);
     }
@@ -68,7 +68,14 @@ class MakeEventController extends Controller
     public function list()
     {
         // Ambil semua event, bisa tambahkan where jika ingin filter tertentu
-        $events = \App\Models\Event::select('id_event', 'nama_event')->get();
+        $events = Event::select('id_event', 'nama_event')->get();
         return response()->json($events);
+    }
+
+    public function getEvent(){
+        $events = Event::select('id_event', 'nama_event', 'status')->get();
+        return Inertia::render('master-data/event/EventManager', [
+            'events' => $events,
+        ]);
     }
 }
