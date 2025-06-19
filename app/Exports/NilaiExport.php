@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 class NilaiExport implements FromCollection, WithHeadings, WithMapping
 {
     protected $jadwalId;
+    protected $rowNumber = 1; // untuk auto increment kolom No
 
     public function __construct($jadwalId)
     {
@@ -28,51 +29,28 @@ class NilaiExport implements FromCollection, WithHeadings, WithMapping
         return [
             'No',
             'Name',
-            'Listening',
-            'Structure',
-            'Reading',
-            'Correct',
+            'Jumlah Soal',
+            'Soal Benar',
+            'Soal Salah',
             'Score'
         ];
     }
 
     public function map($item): array
-    {
-        $jawaban = $item->jawaban;
-        $sections = $jawaban->groupBy('kd_bidang');
-        
-        $scores = [
-            'listening' => 0,
-            'structure' => 0,
-            'reading' => 0
-        ];
-        
-        foreach ($sections as $kd_bidang => $answers) {
-            $correctAnswers = $answers->where('jawaban', 1)->count();
-            $totalQuestions = $answers->count();
-            $sectionScore = ($totalQuestions > 0) ? ($correctAnswers / $totalQuestions) * 100 : 0;
-            
-            switch ($kd_bidang) {
-                case 1:
-                    $scores['listening'] = round($sectionScore);
-                    break;
-                case 2:
-                    $scores['structure'] = round($sectionScore);
-                    break;
-                case 3:
-                    $scores['reading'] = round($sectionScore);
-                    break;
-            }
-        }
+{
+    $total_soal = $item->total_soal ?? 0;
+    $soal_benar = $item->jawaban_benar ?? 0;
+    $soal_salah = $total_soal - $soal_benar;
+    $score = $item->nilai ?? 0;
 
-        return [
-            $item->id,
-            $item->peserta ? $item->peserta->nama : 'Peserta tidak ditemukan',
-            $scores['listening'],
-            $scores['structure'],
-            $scores['reading'],
-            $item->jawaban_benar . "/" . $item->total_soal,
-            round($item->nilai ?? 0)
-        ];
-    }
+    return [
+        (string) $this->rowNumber++, // tetap tampil
+        $item->peserta ? $item->peserta->nama : 'Peserta tidak ditemukan',
+        (string) $total_soal,
+        (string) $soal_benar,
+        (string) $soal_salah,
+        (string) round($score)
+    ];
+}
+
 }
