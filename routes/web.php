@@ -29,34 +29,37 @@ use App\Http\Controllers\MasterData\BidangController;
 use App\Http\Controllers\PaketSoal\MakeEventController;
 use App\Http\Controllers\PaketSoal\AddSoalController;
 
-Route::get('/paket-soal/list', [\App\Http\Controllers\PaketSoal\PaketSoalController::class, 'list']);
 
-Route::get('/bidangs', [BidangController::class, 'index']); // dropdown bidang
-Route::get('/paket-soal/create', function () {
-    return Inertia::render('master-data/paket-soal/CreatePaketSoal');
-})->name('paket-soal.create');
-
-Route::post('/paket-soal', [PaketSoalEditController::class, 'store'])->name('paket-soal.store');
-
-// Custom binding
-Route::bind('matakuliah', fn($value) => Matakuliah::where('id_mk', $value)->firstOrFail());
-
-// Custom binding agar {paket_soal} resolve ke JadwalUjianSoal berdasarkan id_ujian
-Route::bind('paket_soal', function ($value) {
-    return \App\Models\JadwalUjianSoal::where('id_ujian', $value)->firstOrFail();
-});
 
 Route::get('/', function () {
     return Inertia::render('auth/login');
 })->name('home');
-Route::get('/paket-soal/add-soal', [AddSoalController::class, 'showAddSoalForm'])->name('paket-soal.add-soal');
-// Login
-Route::get('/', fn () => Inertia::render('auth/login'))->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // yang perlu diinget, buat name yang punya nama lebih dari 1 kata, contohnya monitoring-ujian
     // itu harus diubah jadi pake titik, contoh monitoring.ujian
     // jadi nanti di route name-nya jadi monitoring.ujian
+
+    Route::get('/paket-soal/add-soal', [AddSoalController::class, 'showAddSoalForm'])->name('paket-soal.add-soal');
+    // Login
+    Route::get('/', fn () => Inertia::render('auth/login'))->name('home');
+
+    Route::get('/paket-soal/list', [PaketSoalController::class, 'list']);
+
+    Route::get('/bidangs', [BidangController::class, 'index']); // dropdown bidang
+    Route::get('/paket-soal/create', function () {
+        return Inertia::render('master-data/paket-soal/CreatePaketSoal');
+    })->name('paket-soal.create');
+
+    Route::post('/paket-soal', [PaketSoalEditController::class, 'store'])->name('paket-soal.store');
+
+    // Custom binding
+    Route::bind('matakuliah', fn($value) => Matakuliah::where('id_mk', $value)->firstOrFail());
+
+    // Custom binding agar {paket_soal} resolve ke JadwalUjianSoal berdasarkan id_ujian
+    Route::bind('paket_soal', function ($value) {
+        return \App\Models\JadwalUjianSoal::where('id_ujian', $value)->firstOrFail();
+    });
 
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
