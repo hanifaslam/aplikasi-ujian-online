@@ -63,13 +63,12 @@ class MonitoringUjianController extends Controller
     }
 
     /**
-     * Display participants and their progress for a specific exam.
+     * Display preview of exam schedules for a specific penjadwalan.
      */
-    public function show(Request $request, $id)
+    public function preview(Request $request, $id)
     {
         $pages = $request->query('pages', 10);
         $search = $request->query('search', null);
-        $status = $request->query('status', null);
 
         // Get the penjadwalan data
         $penjadwalan = Penjadwalan::with(['event', 'jenis_ujian'])->findOrFail($id);
@@ -87,14 +86,82 @@ class MonitoringUjianController extends Controller
             'tipe' => $penjadwalan->tipe,
         ];
 
-        // Get JadwalUjian filtered by id_penjadwalan and kode_part matching tipe_ujian
-        // First try with the original query
-        $jadwalUjian = JadwalUjian::where('id_penjadwalan', $id)
-            ->where('kode_part', $penjadwalan->tipe_ujian)
-            ->first();
+        // Get JadwalUjian filtered by id_penjadwalan
+        $query = JadwalUjian::where('id_penjadwalan', $id);
 
-        // If not found, try without kode_part filter (in case there's a mismatch)
-        if (!$jadwalUjian) {
+        // Apply search filter if provided
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('kode_part', 'like', "%{$search}%")
+                  ->orWhere('kode_kelas', 'like', "%{$search}%")
+                  ->orWhere('nama_ujian', 'like', "%{$search}%")
+                  ->orWhere('id_ujian', 'like', "%{$search}%");
+            });
+        }
+
+        $jadwalUjianList = $query->paginate((int)$pages)->withQueryString();
+
+        // Transform the data to match the expected format in the frontend
+        $jadwalUjianList->getCollection()->transform(function ($item) {
+            return [
+                'id_ujian' => $item->id_ujian,
+                'nama_ujian' => $item->nama_ujian, // Using nama_ujian from database
+                'kode_part' => $item->kode_part,
+                'kode_kelas' => $item->kode_kelas,
+                'id_penjadwalan' => $item->id_penjadwalan,
+            ];
+        });
+
+        return Inertia::render('monitoring/preview', [
+            'ujian' => $transformedUjian,
+            'jadwalUjianList' => $jadwalUjianList,
+            'filters' => [
+                'search' => $search,
+                'pages' => $pages,
+            ],
+        ]);
+    }
+
+    /**
+     * Display participants and their progress for a specific exam.
+     */
+    public function show(Request $request, $id)
+    {
+        $pages = $request->query('pages', 10);
+        $search = $request->query('search', null);
+        $status = $request->query('status', null);
+        $examId = $request->query('exam_id', null);
+
+        // Get the penjadwalan data
+        $penjadwalan = Penjadwalan::with(['event', 'jenis_ujian'])->findOrFail($id);
+
+        // Transform ujian data to expected format
+        $transformedUjian = [
+            'id' => $penjadwalan->id_penjadwalan,
+            'tipe_ujian' => $penjadwalan->tipe_ujian,
+            'paket_ujian' => $penjadwalan->paket_ujian,
+            'kelas_prodi' => $penjadwalan->kelas_prodi,
+            'tanggal_ujian' => $penjadwalan->tanggal ? $penjadwalan->tanggal->format('Y-m-d') : null,
+            'mulai' => $penjadwalan->mulai,
+            'selesai' => $penjadwalan->selesai,
+            'kuota' => $penjadwalan->kuota,
+            'tipe' => $penjadwalan->tipe,
+        ];
+
+        // Get JadwalUjian filtered by id_penjadwalan and optionally by exam_id
+        $jadwalUjianQuery = JadwalUjian::where('id_penjadwalan', $id);
+        
+        if ($examId) {
+            $jadwalUjianQuery->where('id_ujian', $examId);
+        } else {
+            // If no exam_id specified, try with kode_part matching tipe_ujian
+            $jadwalUjianQuery->where('kode_part', $penjadwalan->tipe_ujian);
+        }
+
+        $jadwalUjian = $jadwalUjianQuery->first();
+
+        // If not found and no exam_id was specified, try without kode_part filter
+        if (!$jadwalUjian && !$examId) {
             $jadwalUjian = JadwalUjian::where('id_penjadwalan', $id)->first();
         }
 

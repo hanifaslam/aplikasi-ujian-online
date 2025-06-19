@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { PageFilter, PaginatedResponse, type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import { ContentTitle } from '@/components/content-title';
@@ -57,8 +57,15 @@ export default function Monitoring({ ujianList, filters, flash }: Props) {
                 </div>
 
                 <div className="mt-4 flex items-center justify-between">
-                    <EntriesSelector currentValue={ujianList.per_page} options={[10, 25, 50, 100]} routeName="monitoring-ujian" />
-                    <SearchInputMenu defaultValue={filters.search} routeName="monitoring-ujian" />
+                    <EntriesSelector 
+                        currentValue={ujianList.per_page} 
+                        options={[10, 25, 50, 100]} 
+                        routeName="monitoring.ujian" 
+                    />
+                    <SearchInputMenu 
+                        defaultValue={filters.search} 
+                        routeName="monitoring.ujian" 
+                    />
                 </div>
 
                 <UjianTable data={ujianList} pageFilters={filters} />
@@ -75,12 +82,20 @@ const TipeBadge: React.FC<{ tipe: string }> = ({ tipe }) => {
 };
 
 function UjianTable({ data: ujianList, pageFilters: filters }: { data: PaginatedResponse<Ujian>; pageFilters: PageFilter }) {
+    // Sort data by newest date
+    const sortedData = [...ujianList.data].sort((a, b) => {
+        const dateA = new Date(a.tanggal_ujian);
+        const dateB = new Date(b.tanggal_ujian);
+        return dateB.getTime() - dateA.getTime(); // Sort by newest first
+    });
+
     // Helper function to navigate with preserved search parameters
     const navigateToPage = (page: number) => {
-        router.visit('/monitoring-ujian', {
+        router.visit(route('monitoring.ujian'), {
             data: {
                 page: page,
                 search: filters.search,
+                per_page: ujianList.per_page,
             },
             preserveState: true,
             preserveScroll: true,
@@ -99,14 +114,9 @@ function UjianTable({ data: ujianList, pageFilters: filters }: { data: Paginated
             render: (ujian: Ujian) => ujian.paket_ujian,
         },
         {
-            label: 'Kelompok',
-            className: 'w-[150px] text-center',
-            render: (ujian: Ujian) => ujian.kelas_prodi,
-        },
-        {
             label: 'Tanggal Ujian',
             className: 'w-[150px] text-center',
-            render: (ujian: Ujian) => ujian.tanggal_ujian,
+            render: (ujian: Ujian) => new Date(ujian.tanggal_ujian).toLocaleDateString('id-ID'),
         },
         {
             label: 'Mulai',
@@ -124,20 +134,11 @@ function UjianTable({ data: ujianList, pageFilters: filters }: { data: Paginated
             render: (ujian: Ujian) => <div className="text-center">{ujian.kuota}</div>,
         },
         {
-            label: 'Tipe',
-            className: 'w-[100px] text-center',
-            render: (ujian: Ujian) => (
-                <div className="flex justify-center">
-                    <TipeBadge tipe={ujian.tipe} />
-                </div>
-            ),
-        },
-        {
             label: 'Aksi',
             className: 'w-[80px] text-center',
             render: (ujian: Ujian) => (
                 <div className="flex justify-center">
-                    <Link href={`/monitoring-ujian/${ujian.id}`}>
+                    <Link href={route('monitoring.ujian.preview', ujian.id)}>
                         <Button variant="ghost" size="sm">
                             <ChevronRight />
                         </Button>
@@ -149,7 +150,7 @@ function UjianTable({ data: ujianList, pageFilters: filters }: { data: Paginated
 
     return (
         <div className="flex flex-col gap-4">
-            <CustomTable columns={columns} data={ujianList.data} />
+            <CustomTable columns={columns} data={sortedData} />
 
             <PaginationWrapper
                 currentPage={ujianList.current_page}
