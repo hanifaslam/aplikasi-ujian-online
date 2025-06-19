@@ -39,11 +39,10 @@ class PaketSoalController extends Controller
 
     public function create()
     {
-        // Ambil data yang diperlukan untuk membuat paket soal, misalnya daftar event dan bidang
         $events = Event::select('id_event', 'nama_event')->get();
-        $bidangs = Bidang::select('id_bidang', 'nama_bidang')->get();
+        $bidangs = Bidang::select('kode', 'nama')->get();
 
-        // Tampilkan halaman untuk membuat paket soal
+        // Tampilkan halaman untuk mengedit paket soal
         return Inertia::render('master-data/paket-soal/create-paket-soal', [
             'events' => $events,
             'bidangs' => $bidangs,
@@ -57,7 +56,7 @@ class PaketSoalController extends Controller
 
         // Ambil data yang diperlukan untuk mengisi form edit, misalnya daftar event dan bidang
         $events = Event::select('id_event', 'nama_event')->get();
-        $bidangs = Bidang::select('id_bidang', 'nama_bidang')->get();
+        $bidangs = Bidang::select('kode', 'nama')->get();
 
         // Tampilkan halaman untuk mengedit paket soal
         return Inertia::render('master-data/paket-soal/create-paket-soal', [

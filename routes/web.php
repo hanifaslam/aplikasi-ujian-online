@@ -106,11 +106,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('matakuliah', [MatkulController::class, 'index'])->name('matakuliah');
         Route::get('jenisujian', [JenisUjianController::class, 'index']); // ini tidak pakai name
 
-
-        Route::get('paket-soal', function () {
-            return Inertia::render('paket-soal');
-        })->name('paket.soal');
-
         Route::prefix('dosen')->name('dosen.')->group(function () {
             Route::get('/', [DosenManagerController::class, 'index'])->name('manager');
             Route::get('{id}/edit', [DosenManagerEditController::class, 'edit'])->name('edit');
@@ -179,7 +174,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('paket-soal')->name('paket-soal.')->group(function () {
             Route::get('/', [PaketSoalController::class, 'index'])->name('index');
             Route::get('/create', [PaketSoalEditController::class, 'create'])->name('create');
-            Route::get('/create-paket-soal', fn () => Inertia::render('master-data/paket-soal/create-paket-soal'))->name('create-paket-soal');
             Route::get('/create-event', fn () => Inertia::render('master-data/paket-soal/create-event'))->name('create-event');
             Route::post('/', [PaketSoalEditController::class, 'store'])->name('store');
             Route::get('/{paket_soal}/edit', [PaketSoalEditController::class, 'edit'])->name('edit');

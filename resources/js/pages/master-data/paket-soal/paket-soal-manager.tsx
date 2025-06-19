@@ -110,7 +110,7 @@ export default function PaketSoalManager() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Data Paket Soal" />
       <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-        <ContentTitle title="Data Paket Soal" showButton onButtonClick={() => router.visit('/master-data/paket-soal/create-paket-soal')} />
+        <ContentTitle title="Data Paket Soal" showButton onButtonClick={() => router.visit('/master-data/paket-soal/create')} />
 
         <div className="mt-4 flex items-center justify-between">
           <EntriesSelector currentValue={10} options={[10, 25, 50]} routeName="#" />
