@@ -16,7 +16,10 @@ class PaketSoalController extends Controller
     public function index(Request $request)
     {
         $jadwalUjian = JadwalUjian::select('id_ujian', 'nama_ujian', 'id_event', 'kode_part')
-            ->with('event:id_event,nama_event')
+            ->with([
+                'event:id_event,nama_event',
+                'bidang:kode,nama'
+            ])
             ->get();
 
         $jadwalUjianSoal = JadwalUjianSoal::select('id_ujian','total_soal')->get();

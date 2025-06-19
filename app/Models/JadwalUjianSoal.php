@@ -26,7 +26,7 @@ class JadwalUjianSoal extends Model
         'id_ujian' => 'integer',
         'kd_bidang' => 'integer',
         'total_soal' => 'integer',
-        'ujian_soal' => 'integer',
+        'ujian_soal' => 'string',
         'id_penjadwalan' => 'integer',
         'direction' => 'integer',
         'total_direction' => 'integer',

@@ -107,22 +107,19 @@ class BankSoalControllerCheckbox extends Controller
         ]);
 
         // Ambil data jadwal ujian lama
-        $jadwalUjianLama = JadwalUjian::findOrFail($paket_soal->id_ujian);
+        $jadwalUjianSoal = JadwalUjian::findOrFail($paket_soal->id_ujian);
 
-        // Buat data baru di JadwalUjian (copy dari lama)
-        $jadwalUjianBaru = JadwalUjian::create([
-            'nama_ujian'  => $jadwalUjianLama->nama_ujian,
-            'kode_kelas'  => $jadwalUjianLama->kode_kelas,
-            'id_event'    => $jadwalUjianLama->id_event,
-            'kode_part'   => $jadwalUjianLama->kode_part,
-        ]);
+        // // Buat data baru di JadwalUjian (copy dari lama)
+        // $jadwalUjianBaru = JadwalUjian::create([
+        //     'nama_ujian'  => $jadwalUjianLama->nama_ujian,
+        //     'kode_kelas'  => $jadwalUjianLama->kode_kelas,
+        //     'id_event'    => $jadwalUjianLama->id_event,
+        //     'kode_part'   => $jadwalUjianLama->kode_part,
+        // ]);
 
-        // Buat data baru di JadwalUjianSoal
-        $jadwalUjianSoalBaru = JadwalUjianSoal::create([
-            'id_ujian'    => $jadwalUjianBaru->id_ujian,
-            'kd_bidang'   => $jadwalUjianBaru->kode_part,
-            'total_soal'  => count($request->input('soal_id')),
-            'ujian_soal'  => implode(',', $request->input('soal_id')),
+        $jadwalUjianSoal = JadwalUjianSoal::findOrFail($paket_soal->id_ujian)->update([
+            'total_soal' => count($request->input('soal_id')),
+            'ujian_soal' => implode(',', $request->input('soal_id')),
         ]);
 
         return redirect()

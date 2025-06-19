@@ -20,6 +20,9 @@ interface JadwalUjianType {
   event?: {
     nama_event: string;
   };
+  bidang?: {
+    nama: string;
+  };
 }
 interface JadwalUjianSoalType {
   id_ujian: number;
@@ -42,8 +45,8 @@ export default function PaketSoalManager() {
     return {
       id: item.id_ujian,
       nama: item.nama_ujian,
-      event: item.event?.nama_event ?? item.id_event, // Jika ingin tampilkan nama event, lakukan join di backend
-      bidang: item.kode_part,
+      event: item.event?.nama_event ?? item.id_event,
+      bidang: item.bidang?.nama ?? item.kode_part, // tampilkan nama bidang jika ada
       jumlah: soal ? soal.total_soal : 0,
     };
   });
