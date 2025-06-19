@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { PageFilter, PaginatedResponse, type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { toast } from 'sonner';
 
 import { ContentTitle } from '@/components/content-title';
@@ -74,12 +74,6 @@ export default function Monitoring({ ujianList, filters, flash }: Props) {
     );
 }
 
-// Function component to render a badge based on tipe value
-const TipeBadge: React.FC<{ tipe: string }> = ({ tipe }) => {
-    const badgeClass = tipe === 'Remidi' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800';
-
-    return <span className={`inline-block rounded-md px-2.5 py-1 text-xs font-medium ${badgeClass}`}>{tipe}</span>;
-};
 
 function UjianTable({ data: ujianList, pageFilters: filters }: { data: PaginatedResponse<Ujian>; pageFilters: PageFilter }) {
     // Sort data by newest date
