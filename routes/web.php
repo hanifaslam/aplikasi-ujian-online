@@ -15,7 +15,7 @@ use App\Http\Controllers\MonitoringUjianController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\JenisUjianController;
 use App\Http\Controllers\BankSoalControllerCheckbox;
-use App\Http\Controllers\PaketSoalController;
+use App\Http\Controllers\PaketSoal\PaketSoalController;
 use App\Http\Controllers\PaketSoal\PaketSoalEditController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -167,7 +167,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Route untuk paket soal
         Route::prefix('paket-soal')->name('paket-soal.')->group(function () {
-            Route::get('/', fn () => Inertia::render('master-data/paket-soal/paket-soal-manager'))->name('manager');
+            Route::get('/', [PaketSoalController::class, 'index'])->name('index');
             Route::get('/create', [PaketSoalEditController::class, 'create'])->name('create');
             Route::get('/create-paket-soal', fn () => Inertia::render('master-data/paket-soal/create-paket-soal'))->name('create-paket-soal');
             Route::get('/create-event', fn () => Inertia::render('master-data/paket-soal/create-event'))->name('create-event');
