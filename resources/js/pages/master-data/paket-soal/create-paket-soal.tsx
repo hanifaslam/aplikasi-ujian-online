@@ -17,11 +17,11 @@ const formSchema = z.object({
 
 export default function CreatePaketSoal() {
   // Ambil data dari props inertia
-  const { events = [], bidangs = [], edit = false, paketSoal } = usePage().props as unknown as {
+  const { events = [], bidangs = [], edit = false, paket } = usePage().props as unknown as {
     events: { id_event: number; nama_event: string }[];
     bidangs: { kode: number; nama: string }[];
     edit?: boolean;
-    paketSoal?: {
+    paket?: {
       id_ujian: number;
       nama_ujian: string;
       id_event: number;
@@ -32,9 +32,9 @@ export default function CreatePaketSoal() {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nama: paketSoal?.nama_ujian ?? '',
-      event: paketSoal?.id_event?.toString() ?? '',
-      bidang: paketSoal?.kode_part?.toString() ?? '',
+      nama: paket?.nama_ujian ?? '',
+      event: paket?.id_event?.toString() ?? '',
+      bidang: paket?.kode_part?.toString() ?? '',
     },
   });
 
@@ -44,9 +44,9 @@ export default function CreatePaketSoal() {
   ];
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    if (edit && paketSoal) {
+    if (edit && paket) {
       // Update
-      router.put(`/master-data/paket-soal/${paketSoal.id_ujian}`, {
+      router.put(`/master-data/paket-soal/${paket.id_ujian}`, {
         nama_ujian: values.nama,
         id_event: values.event,
         kode_part: values.bidang,
