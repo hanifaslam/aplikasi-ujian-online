@@ -74,6 +74,10 @@ export default function Detail({ ujian, studentsData, stats, filters, flash }: P
             href: '/monitoring-ujian',
         },
         {
+            title: 'Preview',
+            href: `/monitoring-ujian/${ujian.id}/preview`,
+        },
+        {
             title: 'Detail',
             href: '#',
         },
@@ -89,7 +93,7 @@ export default function Detail({ ujian, studentsData, stats, filters, flash }: P
                     showButton
                     showIcon={false}
                     buttonText="Kembali"
-                    onButtonClick={() => router.visit(route('monitoring.ujian'))}
+                    onButtonClick={() => router.visit(route('monitoring.ujian.preview', ujian.id))}
                 />
                 <Card className="flex flex-col gap-4 p-4">
                     <CardHeader>
