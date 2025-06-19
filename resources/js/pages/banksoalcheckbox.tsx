@@ -103,21 +103,7 @@ export default function BankSoalCheckbox() {
   }, []);
 
   /** Save checked soal ----------------------------------------------------*/
-  const handleSave = () => {
-    if (!paketSoal) return;
-
-    router.put(
-      route('master-data.bank-soal-checkbox.update', paketSoal.id_ujian),
-      {
-        soal_id: selectedSoalIds,
-      },
-      {
-        preserveScroll: true,
-        onSuccess: () => toast.success('Soal berhasil diperbarui'),
-        onError: () => toast.error('Gagal menyimpan soal'),
-      }
-    );
-  };
+  // Removed unused handleSave function
 
   /** Dropdown change ------------------------------------------------------*/
   const handlePaketChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -134,11 +120,19 @@ export default function BankSoalCheckbox() {
       <Head title="Bank Soal Check Box" />
 
       <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        {/* Tombol Kembali di atas */}
+        {paketSoal && (
+          <button
+            onClick={() => router.visit('/master-data/paket-soal')}
+            className="mb-4 self-start rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-700"
+          >
+            Kembali
+          </button>
+        )}
+
         <ContentTitleNoadd title="Bank Soal Check Box" />
 
-        
-
-        {/** Dropdown Pilih Paket Ujian */}
+        {/* Dropdown Pilih Paket Ujian */}
         <div className="mb-4">
           <label className="block mb-1 font-medium">Pilih Paket Ujian</label>
           <select
@@ -161,7 +155,7 @@ export default function BankSoalCheckbox() {
             <EntriesSelector
               currentValue={dataSoal.per_page}
               options={[10, 15, 25, 50]}
-              routeName="master-data.bank.soal" // TODO: adjust if route differs
+              routeName="master-data.bank.soal"
               paramName="pages"
             />
             <OrderFilter defaultValue={filters?.order ?? 'asc'} />
@@ -179,22 +173,6 @@ export default function BankSoalCheckbox() {
           selectedSoalIds={selectedSoalIds}
           setSelectedSoalIds={setSelectedSoalIds}
         />
-
-        {/* Save button */}
-        {paketSoal && (
-          <button
-            onClick={handleSave}
-            disabled={selectedSoalIds.length === 0}
-            className={`mt-4 self-start rounded px-4 py-2 text-white ${
-              selectedSoalIds.length === 0
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-            
-          >
-            Simpan Checklist Soal
-          </button>
-        )}
       </div>
     </AppLayout>
   );
@@ -307,16 +285,31 @@ function BankSoalTable({
   selectedSoalIds: number[];
   setSelectedSoalIds: (ids: number[]) => void;
 }) {
-  const navigateToPage = (page: number) => {
-    router.visit(route('master-data.bank.soal'), {
-      data: {
-        page,
-        search: pageFilters?.search,
-        pages: data.per_page,
-      },
-      preserveState: true,
-      preserveScroll: true,
-    });
+  const paketSoal = usePage<PageProps>().props.paketSoal;
+
+  // Handler untuk update ke backend setiap kali checklist berubah
+  const handleChecklistChange = (id: number, checked: boolean) => {
+    let newIds: number[];
+    if (checked) {
+      newIds = [...selectedSoalIds, id];
+    } else {
+      newIds = selectedSoalIds.filter((sid) => sid !== id);
+    }
+
+    setSelectedSoalIds(newIds);
+
+    // Langsung update ke backend dengan array terbaru
+    if (paketSoal && newIds.length > 0) {
+      router.put(
+        route('master-data.bank-soal-checkbox.update', paketSoal.id_ujian),
+        { soal_id: newIds },
+        {
+          preserveScroll: true,
+          onSuccess: () => toast.success('Soal berhasil diperbarui'),
+          onError: () => toast.error('Gagal menyimpan soal'),
+        }
+      );
+    }
   };
 
   const columns = [
@@ -371,13 +364,7 @@ function BankSoalTable({
             <input
               type="checkbox"
               checked={isSelected}
-              onChange={() => {
-                setSelectedSoalIds(
-                  isSelected
-                    ? selectedSoalIds.filter((id) => id !== item.ids)
-                    : [...selectedSoalIds, item.ids]
-                );
-              }}
+              onChange={() => handleChecklistChange(item.ids, !isSelected)}
               className="h-4 w-4 rounded border-gray-300 text-blue-600"
             />
           </div>
@@ -385,6 +372,18 @@ function BankSoalTable({
       },
     },
   ];
+
+  const navigateToPage = (page: number) => {
+    router.visit(route('master-data.bank.soal'), {
+      data: {
+        page,
+        search: pageFilters?.search,
+        pages: data.per_page,
+      },
+      preserveState: true,
+      preserveScroll: true,
+    });
+  };
 
   return (
     <div className="flex flex-col gap-4">
