@@ -9,10 +9,9 @@ import { CButtonIcon } from '@/components/ui/c-button';
 import { CustomTable } from '@/components/ui/c-table';
 import { EntriesSelector } from '@/components/ui/entries-selector';
 import { PaginationWrapper } from '@/components/ui/pagination-wrapper';
-import { SearchInputMenu } from '@/components/ui/search-input-menu';
 import { Listbox } from '@headlessui/react';
-import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronDown, Search } from 'lucide-react';
+import { useState, useEffect, JSX } from 'react';
 
 interface BreadcrumbItem {
     title: string;
@@ -78,6 +77,42 @@ export default function Banksoal() {
     };
 
     const filters = props.filters || { search: '' };
+    const [searchQuery, setSearchQuery] = useState(filters.search || '');
+    
+    // Store all data locally for client-side filtering
+    const [soalData, setSoalData] = useState(dataSoal.data);
+    const [filteredData, setFilteredData] = useState(dataSoal.data);
+    
+    // Update data when props change
+    useEffect(() => {
+        setSoalData(dataSoal.data);
+        setFilteredData(dataSoal.data);
+    }, [dataSoal.data]);
+    
+    // Filter data when search query changes
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            setFilteredData(soalData);
+            return;
+        }
+        
+        const lowerCaseQuery = searchQuery.toLowerCase();
+        const filtered = soalData.filter((soal) => {
+            // Match across all possible fields including answers
+            return (
+                (soal.header_soal && soal.header_soal.toLowerCase().includes(lowerCaseQuery)) ||
+                (soal.body_soal && soal.body_soal.toLowerCase().includes(lowerCaseQuery)) ||
+                (soal.footer_soal && soal.footer_soal.toLowerCase().includes(lowerCaseQuery)) ||
+                (soal.jenis_soal && soal.jenis_soal.toLowerCase().includes(lowerCaseQuery)) ||
+                (soal.jw_1 && soal.jw_1.toLowerCase().includes(lowerCaseQuery)) ||
+                (soal.jw_2 && soal.jw_2.toLowerCase().includes(lowerCaseQuery)) ||
+                (soal.jw_3 && soal.jw_3.toLowerCase().includes(lowerCaseQuery)) ||
+                (soal.jw_4 && soal.jw_4.toLowerCase().includes(lowerCaseQuery))
+            );
+        });
+        
+        setFilteredData(filtered);
+    }, [searchQuery, soalData]);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -94,9 +129,26 @@ export default function Banksoal() {
                         />
                         <OrderFilter defaultValue={filters?.order ?? 'asc'} />
                     </div>
-                    <SearchInputMenu defaultValue={filters?.search} routeName="master-data.bank.soal" />
+                    {/* Replace SearchInputMenu with inline search */}
+                    <div className="relative">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Cari soal..."
+                            className="w-[250px] rounded-lg border border-gray-300 pl-9 pr-3 py-2 text-sm text-gray-700 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+                        />
+                        <Search className="absolute left-2 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                    </div>
                 </div>
-                <BankSoalTable data={dataSoal} pageFilters={filters} />
+                <BankSoalTable 
+                    data={{
+                        ...dataSoal,
+                        data: filteredData 
+                    }} 
+                    pageFilters={filters}
+                    searchQuery={searchQuery}
+                />
             </div>
         </AppLayout>
     );
@@ -225,7 +277,34 @@ function OrderFilter({ defaultValue }: { defaultValue: string }) {
     );
 }
 
-function renderContentWithBase64(content: string | null) {
+// Add a highlight text utility function
+function highlightText(text: string, searchQuery: string): JSX.Element {
+    if (!searchQuery.trim() || !text) {
+        return <span dangerouslySetInnerHTML={{ __html: text }} />;
+    }
+
+    try {
+        // Escape special regex characters in searchQuery
+        const escapedQuery = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const parts = text.split(new RegExp(`(${escapedQuery})`, 'gi'));
+        
+        return (
+            <span>
+                {parts.map((part, index) => 
+                    part.toLowerCase() === searchQuery.toLowerCase() 
+                        ? <mark key={index} className="bg-yellow-300">{part}</mark>
+                        : <span key={index} dangerouslySetInnerHTML={{ __html: part }} />
+                )}
+            </span>
+        );
+    } catch {
+        // Fallback if regex fails - using empty catch block to avoid unused variable
+        return <span dangerouslySetInnerHTML={{ __html: text }} />;
+    }
+}
+
+// Update the renderContentWithBase64 function to include search highlighting
+function renderContentWithBase64(content: string | null, searchQuery: string = '') {
     if (!content) return null;
 
     const isProbablyBase64 = /^[A-Za-z0-9+/]+={0,2}$/.test(content) && content.length > 100;
@@ -236,11 +315,21 @@ function renderContentWithBase64(content: string | null) {
         return <img src={imageSrc} alt="gambar" className="max-h-60 max-w-full rounded object-contain" />;
     }
 
-    // Menangani HTML yang mungkin ada
-    return <span className="text-base font-medium whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: content }} />;
+    // Handle HTML with highlighting
+    return searchQuery.trim() 
+        ? highlightText(content, searchQuery)
+        : <span className="text-base font-medium whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: content }} />;
 }
 
-function BankSoalTable({ data, pageFilters }: { data: PaginatedResponse<Soal>; pageFilters: PageFilter }) {
+function BankSoalTable({ 
+    data, 
+    pageFilters,
+    searchQuery = '' 
+}: { 
+    data: PaginatedResponse<Soal>; 
+    pageFilters: PageFilter;
+    searchQuery?: string;
+}) {
     const [open, setOpen] = useState(false);
     const [targetId, setTargetId] = useState<number | null>(null);
 
@@ -262,6 +351,8 @@ function BankSoalTable({ data, pageFilters }: { data: PaginatedResponse<Soal>; p
         setOpen(false);
     };
 
+    // Update this function to handle the current state of pagination
+    // based on the filtered data rather than making a server request
     const navigateToPage = (page: number) => {
         router.visit(route('master-data.bank.soal'), {
             data: {
@@ -283,7 +374,15 @@ function BankSoalTable({ data, pageFilters }: { data: PaginatedResponse<Soal>; p
         {
             label: 'Kode Soal',
             className: 'w-[100px]',
-            render: (item: Soal) => <div className="text-center">{item.jenis_soal || '-'}</div>,
+            render: (item: Soal) => (
+                <div className="text-center">
+                    {item.jenis_soal 
+                        ? searchQuery.trim() 
+                            ? highlightText(item.jenis_soal, searchQuery) 
+                            : item.jenis_soal
+                        : '-'}
+                </div>
+            ),
         },
         {
             label: 'Soal',
@@ -293,9 +392,9 @@ function BankSoalTable({ data, pageFilters }: { data: PaginatedResponse<Soal>; p
                     {/* Suara jika ada */}
                     {item.suara && <audio controls src={`/storage/${item.suara}`} className="w-[250px] max-w-full" />}
 
-                    {renderContentWithBase64(item.header_soal)}
-                    {renderContentWithBase64(item.body_soal)}
-                    {renderContentWithBase64(item.footer_soal)}
+                    {renderContentWithBase64(item.header_soal, searchQuery)}
+                    {renderContentWithBase64(item.body_soal, searchQuery)}
+                    {renderContentWithBase64(item.footer_soal, searchQuery)}
 
                     {/* Pilihan Jawaban */}
                     <ul className="space-y-2 text-base font-medium">
@@ -307,7 +406,7 @@ function BankSoalTable({ data, pageFilters }: { data: PaginatedResponse<Soal>; p
                                     {/* Huruf A, B, C */}
                                     <span className="mr-2 flex-shrink-0">{huruf}.</span>
                                     {/* Isi jawaban */}
-                                    <div className="break-words whitespace-pre-wrap">{renderContentWithBase64(jw)}</div>
+                                    <div className="break-words whitespace-pre-wrap">{renderContentWithBase64(jw, searchQuery)}</div>
                                 </li>
                             );
                         })}
