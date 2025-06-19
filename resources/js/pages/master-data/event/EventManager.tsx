@@ -11,6 +11,7 @@ import { CustomTable } from '@/components/ui/c-table';
 import { PaginationWrapper } from '@/components/ui/pagination-wrapper';
 import { SearchInputMenu } from '@/components/ui/search-input-menu';
 import { EntriesSelector } from '@/components/ui/entries-selector';
+import { router } from '@inertiajs/react';
 
 const breadcrumbs = [{ title: 'Event', href: '/master-data/event' }];
 
@@ -29,7 +30,11 @@ export default function EventManager() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Data Event" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <ContentTitle title="Data Event" showButton onButtonClick={() => alert('Tambah Event')} />
+                <ContentTitle
+                    title="Data Event"
+                    showButton
+                    onButtonClick={() => router.visit(route('master-data.event.create'))}
+                />
                 <div className="mt-4 flex items-center justify-between">
                     <EntriesSelector currentValue={10} options={[10, 25, 50]} routeName="#" />
                     <SearchInputMenu defaultValue={''} routeName="#" />
@@ -88,7 +93,7 @@ function EventTable({ data }: { data: EventType[] }) {
             render: (event: EventType) => (
                 <div className="flex justify-center gap-2">
                     <CButtonIcon icon={List} className="bg-yellow-500" onClick={() => alert(`Detail event ${event.id_event}`)} />
-                    <CButtonIcon icon={Pencil} onClick={() => alert(`Edit event ${event.id_event}`)} />
+                    <CButtonIcon icon={Pencil} onClick={() => window.location.href = route('master-data.event.edit', event.id_event)} />
                     <CButtonIcon icon={Trash2} type="danger" onClick={() => handleDelete(event.id_event)} />
                 </div>
             ),

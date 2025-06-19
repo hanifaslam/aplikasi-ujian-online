@@ -14,17 +14,42 @@ class PaketSoalEditController extends Controller
 {
     public function edit($id)
     {
-        $event = Event::with('jadwalUjian', 'jadwalUjianSoal')->findOrFail($id);
+        // Ambil data jadwal ujian (paket soal)
+        $paket = JadwalUjian::findOrFail($id);
 
-        $bidangs = Bidang::all();
+        // Ambil event & bidang untuk dropdown
+        $events = Event::select('id_event', 'nama_event')->get();
+        $bidangs = Bidang::select('kode', 'nama')->get();
 
-        return view('paket-soal.edit', compact('event', 'bidangs'));
+        // Kirim data ke inertia view
+        return Inertia::render('master-data/paket-soal/create-paket-soal', [
+            'edit' => true,
+            'paket' => [
+                'id_ujian' => $paket->id_ujian,
+                'nama_ujian' => $paket->nama_ujian,
+                'id_event' => $paket->id_event,
+                'kode_part' => $paket->kode_part,
+            ],
+            'events' => $events,
+            'bidangs' => $bidangs,
+        ]);
     }
-
 
     public function update(Request $request, $id)
     {
-        
+        $request->validate([
+            'nama_ujian' => 'required|string|max:255',
+            'id_event' => 'required|integer|exists:data_db.t_event,id_event',
+            'kode_part' => 'required|integer|exists:data_db.m_bidang,kode',
+        ]);
+
+        $paket = JadwalUjian::findOrFail($id);
+        $paket->nama_ujian = $request->input('nama_ujian');
+        $paket->id_event = $request->input('id_event');
+        $paket->kode_part = $request->input('kode_part');
+        $paket->save();
+
+        return redirect()->route('master-data.paket-soal.index')->with('success', 'Paket soal berhasil diupdate!');
     }
 
     // PaketSoalEditController.php

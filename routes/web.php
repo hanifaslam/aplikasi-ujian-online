@@ -29,12 +29,6 @@ use App\Http\Controllers\MasterData\BidangController;
 use App\Http\Controllers\PaketSoal\MakeEventController;
 use App\Http\Controllers\PaketSoal\AddSoalController;
 
-Route::prefix('event')->name('event.')->group(function () {
-    Route::get('/create', [MakeEventController::class, 'create'])->name('create');
-    Route::post('/store', [MakeEventController::class, 'store'])->name('store');
-    Route::get('/list', [MakeEventController::class, 'index'])->name('list');
-});
-
 Route::get('/paket-soal/list', [\App\Http\Controllers\PaketSoal\PaketSoalController::class, 'list']);
 
 Route::get('/bidangs', [BidangController::class, 'index']); // dropdown bidang
@@ -163,6 +157,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{matakuliah}/edit', [MatkulController::class, 'edit'])->name('edit');
             Route::put('/{matakuliah}', [MatkulController::class, 'update'])->name('update');
             Route::delete('/{matakuliah}', [MatkulController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('event')->name('event.')->group(function () {
+            Route::get('/create', [MakeEventController::class, 'create'])->name('create');
+            Route::post('/store', [MakeEventController::class, 'store'])->name('store');
+            Route::get('/list', [MakeEventController::class, 'index'])->name('list');
+            Route::get('/{id}/edit', [MakeEventController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [MakeEventController::class, 'update'])->name('update');
         });
 
         // Route untuk paket soal
