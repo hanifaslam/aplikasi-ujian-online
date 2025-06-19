@@ -47,6 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('monitoring-ujian', [App\Http\Controllers\MonitoringUjianController::class, 'index'])->name('monitoring.ujian');
     Route::get('monitoring-ujian/{id}/preview', [App\Http\Controllers\MonitoringUjianController::class, 'preview'])->name('monitoring.ujian.preview');
     Route::get('monitoring-ujian/{id}', [App\Http\Controllers\MonitoringUjianController::class, 'show'])->name('monitoring.ujian.detail');
+    Route::post('monitoring-ujian/{id}/reset-participant', [App\Http\Controllers\MonitoringUjianController::class, 'resetParticipant'])->name('monitoring.ujian.reset');
+    Route::post('monitoring-ujian/{id}/delete-participant', [App\Http\Controllers\MonitoringUjianController::class, 'deleteParticipant'])->name('monitoring.ujian.delete');
 
     Route::prefix('penjadwalan')->name('penjadwalan.')->group(function () {
         Route::get('/', [PenjadwalanController::class, 'index'])->name('index');
