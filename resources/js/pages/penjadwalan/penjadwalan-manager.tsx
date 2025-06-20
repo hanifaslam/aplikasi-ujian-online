@@ -34,6 +34,8 @@ type JadwalUjian = {
     kode_jadwal: string;
     online_offline: number;
     flag: number;
+    paket_ujian: string;  // Data dari JadwalUjian
+    jadwal_ujian_count: number;
 };
 
 export default function PenjadwalanManager() {
@@ -113,7 +115,7 @@ function PenjadwalanTable({ data: examData, pageFilters: filters }: { data: Pagi
         },
         {
             label: 'Paket Ujian',
-            render: (exam: JadwalUjian) => exam.id_paket_ujian,
+            render: (exam: JadwalUjian) => exam.paket_ujian,
         },
         {
             label: 'Tanggal Ujian',
