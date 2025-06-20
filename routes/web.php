@@ -90,9 +90,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('master-data')->name('master-data.')->group(function () {
         Route::get('/', fn () => redirect()->route('dashboard'))->name('index');
 
-        // Route::get('peserta', function () {
-        //     return Inertia::render('peserta');
-        // })->name('peserta');
+        Route::get('peserta', function () {
+            return Inertia::render('peserta');
+        })->name('peserta');
 
         Route::get('dosen', function () {
             return Inertia::render('dosen');
@@ -149,8 +149,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('bank-soal/create', function () {
             return Inertia::render('banksoalcreate');
         })->name('bank.soal.create');
+        
         // Route edit bank soal
-        //Route::put('bank-soal/{id}', [BankSoalController::class, 'update'])->name('bank.soal.update');
+        Route::put('bank-soal/{id}', [BankSoalController::class, 'update'])->name('bank.soal.update');
         Route::get('bank-soal/{id}/edit', [BankSoalController::class, 'edit'])->name('bank.soal.edit');
 
         Route::post('bank-soal', [BankSoalController::class, 'store'])->name('bank.soal.store');
@@ -171,6 +172,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/list', [MakeEventController::class, 'index'])->name('list');
             Route::get('/{id}/edit', [MakeEventController::class, 'edit'])->name('edit');
             Route::put('/{id}', [MakeEventController::class, 'update'])->name('update');
+            Route::get('/', [MakeEventController::class, 'getEvent'])->name('getEvent');
         });
 
         // Route untuk paket soal
@@ -183,12 +185,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{paket_soal}', [PaketSoalEditController::class, 'update'])->name('update');
             Route::delete('/{paket_soal}', [PaketSoalController::class, 'delete'])->name('destroy');
             Route::post('/store', [PaketSoalEditController::class, 'store_data'])->name('store_data');
-        });
-
-        Route::prefix('event')->name('event.')->group(function () {
-            Route::get('/', [MakeEventController::class, 'getEvent'])->name('getEvent');
-            Route::get('/create', [MakeEventController::class, 'create'])->name('create');
-            Route::post('/store', [MakeEventController::class, 'store'])->name('store');
         });
 
         Route::get('/kategorisoal', [BankSoalController::class, 'getKategoriSoal']);
@@ -216,7 +212,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/token/generate', [TokenController::class, 'generateNewToken'])->name('token.generate');
     Route::get('/token/copy', [TokenController::class, 'copyToken'])->name('token.copy');
 
-    Route::get('/events/list', [\App\Http\Controllers\PaketSoal\MakeEventController::class, 'list']);
+    Route::get('/events/list', [MakeEventController::class, 'list']);
 });
 
 require __DIR__ . '/settings.php';
