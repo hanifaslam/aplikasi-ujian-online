@@ -183,7 +183,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/', [JenisUjianEditController::class, 'store'])->name('store');
         });
 
-
         // Route untuk paket soal
         Route::prefix('paket-soal')->name('paket-soal.')->group(function () {
             Route::get('/', [PaketSoalController::class, 'index'])->name('index');
