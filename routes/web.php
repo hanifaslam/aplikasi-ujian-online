@@ -149,7 +149,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('bank-soal/create', function () {
             return Inertia::render('banksoalcreate');
         })->name('bank.soal.create');
-        
         // Route edit bank soal
         Route::put('bank-soal/{id}', [BankSoalController::class, 'update'])->name('bank.soal.update');
         Route::get('bank-soal/{id}/edit', [BankSoalController::class, 'edit'])->name('bank.soal.edit');
@@ -174,6 +173,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{id}', [MakeEventController::class, 'update'])->name('update');
             Route::get('/', [MakeEventController::class, 'getEvent'])->name('getEvent');
         });
+
+        Route::prefix('jenis-ujian')->name('jenis-ujian.')->group(function () {
+            Route::get('/', [JenisUjianController::class, 'index'])->name('manager');
+            Route::get('{id}/edit', [JenisUjianEditController::class, 'edit'])->name('edit'); // Ensure the controller and method exist
+            Route::put('{id}', [JenisUjianEditController::class, 'update'])->name('update');
+            Route::delete('{user}', [JenisUjianController::class, 'delete'])->name('destroy');
+            Route::get('create', [JenisUjianEditController::class, 'create'])->name('create');
+            Route::post('/', [JenisUjianEditController::class, 'store'])->name('store');
+        });
+
 
         // Route untuk paket soal
         Route::prefix('paket-soal')->name('paket-soal.')->group(function () {
