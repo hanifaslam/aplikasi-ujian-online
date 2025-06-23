@@ -53,7 +53,7 @@ const items: MainNavItem[] = [
             },
             {
                 title: 'Kategori Ujian',
-                href: '/master-data/peserta',
+                href: '/master-data/kategori-soal',
                 icon: Book,
             },
             {
