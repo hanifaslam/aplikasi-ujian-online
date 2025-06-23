@@ -132,8 +132,38 @@ function EventTable({
               event.status === 1 ? 'bg-green-600' : 'bg-red-600'
             }`}
           >
-            {event.status === 1 ? 'Active' : 'Inactive'}
+            {event.status === 1 ? 'Aktif' : 'Tidak Aktif'}
           </span>
+        </div>
+      ),
+    },
+    {
+      label: 'Mulai Event',
+      className: 'text-center w-[200px]',
+      render: (event: EventType & { mulai_event?: string }) => (
+        <div className="text-center">
+          {event.mulai_event
+            ? new Date(event.mulai_event).toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })
+            : '-'}
+        </div>
+      ),
+    },
+    {
+      label: 'Akhir Event',
+      className: 'text-center w-[200px]',
+      render: (event: EventType & { akhir_event?: string }) => (
+        <div className="text-center">
+          {event.akhir_event
+            ? new Date(event.akhir_event).toLocaleDateString('id-ID', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })
+            : '-'}
         </div>
       ),
     },

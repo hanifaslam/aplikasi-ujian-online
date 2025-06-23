@@ -173,6 +173,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{id}', [MakeEventController::class, 'update'])->name('update');
             Route::get('/', [MakeEventController::class, 'getEvent'])->name('getEvent');
             Route::get('/{id}', [MakeEventController::class, 'show'])->name('show');
+            Route::delete('/{id}', [MakeEventController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('jenis-ujian')->name('jenis-ujian.')->group(function () {
@@ -191,7 +192,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/create', [PaketSoalEditController::class, 'create'])->name('create');
             Route::get('/create-event', fn () => Inertia::render('master-data/paket-soal/create-event'))->name('create-event');
             Route::post('/', [PaketSoalEditController::class, 'store'])->name('store');
-            Route::get('/{paket_soal}/edit', [PaketSoalEditController::class, 'edit'])->name('edit');
+            Route::get('/{paket_soal}', [PaketSoalEditController::class, 'edit'])->name('edit');
             Route::put('/{paket_soal}', [PaketSoalEditController::class, 'update'])->name('update');
             Route::delete('/{paket_soal}', [PaketSoalController::class, 'delete'])->name('destroy');
             Route::post('/store', [PaketSoalEditController::class, 'store_data'])->name('store_data');

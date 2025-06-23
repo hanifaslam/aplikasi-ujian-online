@@ -7,6 +7,8 @@ use App\Models\Bidang;
 use Illuminate\Http\Request;
 use App\Models\Event;
 use Inertia\Inertia;
+use App\Models\JadwalUjian;
+use App\Models\JadwalUjianSoal;
 
 class MakeEventController extends Controller
 {
@@ -49,8 +51,16 @@ class MakeEventController extends Controller
     {
         $event = Event::findOrFail($id);
 
+        $eventData = [
+            'id_event' => $event->id_event,
+            'nama_event' => $event->nama_event,
+            'status' => $event->status ? 'aktif' : 'tidak-aktif',
+            'event_mulai' => $event->mulai_event ? $event->mulai_event->format('Y-m-d') : null,
+            'event_akhir' => $event->akhir_event ? $event->akhir_event->format('Y-m-d') : null,
+        ];
+
         return Inertia::render('master-data/event/EventDetail', [
-            'event' => $event,
+            'event' => $eventData,
         ]);
     }
 
@@ -63,6 +73,8 @@ class MakeEventController extends Controller
             'id_event' => $event->id_event,
             'nama_event' => $event->nama_event,
             'status' => $event->status ? 'aktif' : 'tidak-aktif',
+            'event_mulai' => $event->mulai_event ? $event->mulai_event->format('Y-m-d H:i:s') : null,
+            'event_akhir' => $event->akhir_event ? $event->akhir_event->format('Y-m-d H:i:s') : null,
         ];
 
         return Inertia::render('master-data/paket-soal/create-event', [
@@ -75,11 +87,19 @@ class MakeEventController extends Controller
         $request->validate([
             'nama_event' => 'required|string|max:255',
             'status' => 'required|boolean',
+            'event_mulai' => 'nullable|date',
+            'event_akhir' => 'nullable|date',
         ]);
 
         $event = Event::findOrFail($id);
         $event->nama_event = $request->input('nama_event');
         $event->status = $request->input('status');
+        if ($request->has('event_mulai')) {
+            $event->mulai_event = $request->input('event_mulai');
+        }
+        if ($request->has('event_akhir')) {
+            $event->akhir_event = $request->input('event_akhir');
+        }
         $event->save();
 
         return redirect()->route('master-data.event.getEvent')->with('success', 'Event berhasil diupdate!');
@@ -87,7 +107,18 @@ class MakeEventController extends Controller
 
     public function destroy($id)
     {
-        // Logic to delete an existing event
+        // Hapus semua jadwal ujian yang terkait dengan event ini
+        $jadwalUjians = JadwalUjian::where('id_event', $id)->get();
+        foreach ($jadwalUjians as $jadwalUjian) {
+            JadwalUjianSoal::where('id_ujian', $jadwalUjian->id_ujian)->delete();
+            $jadwalUjian->delete();
+        }
+
+        $event = Event::findOrFail($id);
+        $event->delete();
+
+        return redirect()->route('master-data.event.getEvent')
+            ->with('success', 'Event berhasil dihapus');
     }
 
     public function list()
@@ -101,7 +132,8 @@ class MakeEventController extends Controller
         $pages = $request->query('pages', 10);
         $search = $request->query('search', null);
 
-        $eventQuery = Event::select('id_event', 'nama_event', 'status');
+        $eventQuery = Event::select('id_event', 'nama_event', 'status', 'mulai_event', 'akhir_event')
+            ->orderBy('id_event', 'desc');
 
         if ($search) {
             $eventQuery->where('nama_event', 'like', '%' . $search . '%');

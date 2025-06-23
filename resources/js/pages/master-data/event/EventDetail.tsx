@@ -17,29 +17,38 @@ import { z } from 'zod';
 // Validasi schema
 const formSchema = z.object({
     nama_event: z.string().min(2).max(255),
-    status: z.number().refine(val => val === 1 || val === 0),
+    status: z.boolean(),
 });
 
-export default function FormEventDetail() {
+export default function FormEvent() {
     const { event } = usePage<{
         event: {
             id_event?: string;
             nama_event?: string;
-            status?: number;
-            mulai_event?: string;
-            akhir_event?: string;
-            create_event?: string;
+            status?: 'aktif' | 'tidak-aktif';
+            event_mulai?: string | Date;
+            event_akhir?: string | Date;
         } | null;
     }>().props;
 
+
     const form = useForm<{
         nama_event: string;
-        status: number;
+        status: boolean;
+        event_mulai?: Date | null;
+        event_akhir?: Date | null;
     }>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             nama_event: event?.nama_event ?? '',
-            status: event?.status ?? 1, // ini udah aman, fallback ke 1 cuma kalau null/undefined
+            status:
+                event?.status === 'aktif'
+                    ? true
+                    : event?.status === 'tidak-aktif'
+                    ? false
+                    : true,
+            event_mulai: event?.event_mulai ? new Date(event.event_mulai) : undefined,
+            event_akhir: event?.event_akhir ? new Date(event.event_akhir) : undefined,
         },
     });
 
@@ -92,7 +101,60 @@ export default function FormEventDetail() {
                                     <FormLabel>Status</FormLabel>
                                     <FormControl>
                                         <Input
-                                            value={field.value === 1 ? 'Aktif' : 'Tidak Aktif'}
+                                            value={field.value ? 'Aktif' : 'Tidak Aktif'}
+                                            disabled
+                                            className="text-black bg-gray-100 cursor-not-allowed"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="event_mulai"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Mulai Event (opsional)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="date"
+                                            value={
+                                                field.value
+                                                    ? typeof field.value === 'string'
+                                                        ? field.value
+                                                        : field.value instanceof Date
+                                                        ? field.value.toISOString().split('T')[0]
+                                                        : ''
+                                                    : ''
+                                            }
+                                            disabled
+                                            className="text-black bg-gray-100 cursor-not-allowed"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="event_akhir"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Akhir Event (opsional)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="date"
+                                            value={
+                                                field.value
+                                                    ? typeof field.value === 'string'
+                                                        ? field.value
+                                                        : field.value instanceof Date
+                                                        ? field.value.toISOString().split('T')[0]
+                                                        : ''
+                                                    : ''
+                                            }
                                             disabled
                                             className="text-black bg-gray-100 cursor-not-allowed"
                                         />

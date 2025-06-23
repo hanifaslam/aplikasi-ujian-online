@@ -19,11 +19,19 @@ import { z } from 'zod';
 const formSchema = z.object({
     nama_event: z.string().min(2, { message: 'Nama event minimal 2 karakter.' }).max(255),
     status: z.boolean({ required_error: 'Status wajib dipilih.' }),
+    event_mulai: z.coerce.date().optional().nullable(),
+    event_akhir: z.coerce.date().optional().nullable(),
 });
 
 export default function FormEvent() {
     const { event } = usePage<{
-        event: { id_event?: string; nama_event?: string; status?: 'aktif' | 'tidak-aktif' } | null;
+        event: {
+            id_event?: string;
+            nama_event?: string;
+            status?: 'aktif' | 'tidak-aktif';
+            event_mulai?: string | Date;
+            event_akhir?: string | Date;
+        } | null;
     }>().props;
 
     const isEdit = !!event;
@@ -36,6 +44,8 @@ export default function FormEvent() {
     const form = useForm<{
         nama_event: string;
         status: boolean;
+        event_mulai?: Date | null;
+        event_akhir?: Date | null;
     }>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -46,6 +56,8 @@ export default function FormEvent() {
                     : event?.status === 'tidak-aktif'
                     ? false
                     : true,
+            event_mulai: event?.event_mulai ? new Date(event.event_mulai) : undefined,
+            event_akhir: event?.event_akhir ? new Date(event.event_akhir) : undefined,
         },
     });
 
@@ -81,8 +93,11 @@ export default function FormEvent() {
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{isEdit ? 'Edit' : 'Create'} Event</h1>
-                    <CButton type="primary" onClick={() => router.visit(route('master-data.event.index'))}>
-                        Back
+                    <CButton
+                        type="primary"
+                        onClick={() => router.visit(route('master-data.event.getEvent'))}
+                    >
+                        Kembali
                     </CButton>
                 </div>
                 <Form {...form}>
@@ -126,7 +141,42 @@ export default function FormEvent() {
                             )}
                         />
 
-                        <CButton type="submit">{isEdit ? 'Update' : 'Save'}</CButton>
+                        <FormField
+                            control={form.control}
+                            name="event_mulai"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Mulai Event (opsional)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="date"
+                                            {...field}
+                                            value={field.value ? new Date(field.value).toISOString().slice(0, 10) : ''}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="event_akhir"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Akhir Event (opsional)</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="date"
+                                            {...field}
+                                            value={field.value ? new Date(field.value).toISOString().slice(0, 10) : ''}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <CButton type="submit">{isEdit ? 'Simpan' : 'Save'}</CButton>
                     </form>
                 </Form>
             </div>
