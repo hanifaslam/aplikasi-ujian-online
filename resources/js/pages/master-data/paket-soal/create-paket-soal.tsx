@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -16,34 +16,63 @@ const formSchema = z.object({
 });
 
 export default function CreatePaketSoal() {
+  // Ambil data dari props inertia
+  const { events = [], bidangs = [], edit = false, paket } = usePage().props as unknown as {
+    events: { id_event: number; nama_event: string }[];
+    bidangs: { kode: number; nama: string }[];
+    edit?: boolean;
+    paket?: {
+      id_ujian: number;
+      nama_ujian: string;
+      id_event: number;
+      kode_part: number;
+    };
+  };
+
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      nama: '',
-      event: '',
-      bidang: '',
+      nama: paket?.nama_ujian ?? '',
+      event: paket?.id_event?.toString() ?? '',
+      bidang: paket?.kode_part?.toString() ?? '',
     },
   });
 
   const breadcrumbs = [
     { title: 'Paket Soal', href: '/master-data/paket-soal' },
-    { title: 'Create', href: '#' },
+    { title: edit ? 'Edit' : 'Create', href: '#' },
   ];
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    router.post('/master-data/paket-soal', values, {
-      onSuccess: () => toast.success('Paket soal berhasil disimpan!'),
-      onError: () => toast.error('Gagal menyimpan paket soal.'),
-    });
+    if (edit && paket) {
+      // Update
+      router.put(`/master-data/paket-soal/${paket.id_ujian}`, {
+        nama_ujian: values.nama,
+        id_event: values.event,
+        kode_part: values.bidang,
+      }, {
+        onSuccess: () => toast.success('Paket soal berhasil diupdate!'),
+        onError: () => toast.error('Gagal update paket soal.'),
+      });
+    } else {
+      // Create
+      router.post('/master-data/paket-soal', {
+        nama_ujian: values.nama,
+        id_event: values.event,
+        kode_part: values.bidang,
+      }, {
+        onSuccess: () => toast.success('Paket soal berhasil disimpan!'),
+        onError: () => toast.error('Gagal menyimpan paket soal.'),
+      });
+    }
   };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Buat Paket Soal" />
+      <Head title={edit ? "Edit Paket Soal" : "Buat Paket Soal"} />
       <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Buat Paket Soal</h1>
+          <h1 className="text-2xl font-bold">{edit ? "Edit Paket Soal" : "Buat Paket Soal"}</h1>
           <CButton type="primary" onClick={() => router.visit('/master-data/paket-soal')}>
             Kembali
           </CButton>
@@ -74,8 +103,11 @@ export default function CreatePaketSoal() {
                   <FormControl>
                     <select {...field} className="w-full rounded-md border border-gray-300 p-2">
                       <option value="">Pilih Event</option>
-                      <option value="tryout">Tryout Nasional</option>
-                      <option value="uts">UTS Semester Genap</option>
+                      {events.map(ev => (
+                        <option key={ev.id_event} value={ev.id_event}>
+                          {ev.nama_event}
+                        </option>
+                      ))}
                     </select>
                   </FormControl>
                   <FormMessage />
@@ -92,9 +124,11 @@ export default function CreatePaketSoal() {
                   <FormControl>
                     <select {...field} className="w-full rounded-md border border-gray-300 p-2">
                       <option value="">Pilih Bidang</option>
-                      <option value="listening">Listening</option>
-                      <option value="structure">Structure</option>
-                      <option value="reading">Reading</option>
+                      {bidangs.map(bd => (
+                        <option key={bd.kode} value={bd.kode}>
+                          {bd.nama}
+                        </option>
+                      ))}
                     </select>
                   </FormControl>
                   <FormMessage />
@@ -102,7 +136,7 @@ export default function CreatePaketSoal() {
               )}
             />
 
-            <CButton type="submit">Simpan</CButton>
+            <CButton type="submit">{edit ? "Update" : "Simpan"}</CButton>
           </form>
         </Form>
       </div>

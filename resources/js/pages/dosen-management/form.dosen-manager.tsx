@@ -73,7 +73,7 @@ export default function Dashboard() {
             password: '',
             roles: user?.roles?.length ? user.roles : [],
             nip: user?.dosen?.nip ?? '',
-            aktif: user?.dosen?.aktif ?? false,
+            aktif: !!user?.dosen?.aktif,
         },
     });
 

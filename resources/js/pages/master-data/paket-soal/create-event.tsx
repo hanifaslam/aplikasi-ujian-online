@@ -17,15 +17,13 @@ import { z } from 'zod';
 
 // Validasi schema
 const formSchema = z.object({
-    nama: z.string().min(2, { message: 'Nama event minimal 2 karakter.' }).max(255),
-    status: z.enum(['aktif', 'tidak-aktif'], {
-        errorMap: () => ({ message: 'Status wajib dipilih.' }),
-    }),
+    nama_event: z.string().min(2, { message: 'Nama event minimal 2 karakter.' }).max(255),
+    status: z.boolean({ required_error: 'Status wajib dipilih.' }),
 });
 
 export default function FormEvent() {
     const { event } = usePage<{
-        event: { id?: string; nama?: string; status?: 'aktif' | 'tidak-aktif' } | null;
+        event: { id_event?: string; nama_event?: string; status?: 'aktif' | 'tidak-aktif' } | null;
     }>().props;
 
     const isEdit = !!event;
@@ -35,17 +33,25 @@ export default function FormEvent() {
         { title: isEdit ? 'Edit' : 'Create', href: '#' },
     ];
 
-    const form = useForm({
+    const form = useForm<{
+        nama_event: string;
+        status: boolean;
+    }>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            nama: event?.nama ?? '',
-            status: event?.status ?? 'aktif',
+            nama_event: event?.nama_event ?? '',
+            status:
+                event?.status === 'aktif'
+                    ? true
+                    : event?.status === 'tidak-aktif'
+                    ? false
+                    : true,
         },
     });
 
     function onSubmit(values: z.infer<typeof formSchema>) {
-        if (isEdit && event?.id) {
-            router.put(route('master-data.event.update', event.id), values, {
+        if (isEdit && event?.id_event) {
+            router.put(route('master-data.event.update', event.id_event), values, {
                 preserveScroll: true,
                 onSuccess: () => toast.success('Event berhasil diubah!'),
                 onError: handleErrors,
@@ -79,13 +85,11 @@ export default function FormEvent() {
                         Back
                     </CButton>
                 </div>
-
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Nama Event */}
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <FormField
                             control={form.control}
-                            name="nama"
+                            name="nama_event"
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Nama Event</FormLabel>
@@ -105,9 +109,16 @@ export default function FormEvent() {
                                 <FormItem>
                                     <FormLabel>Status</FormLabel>
                                     <FormControl>
-                                        <select {...field} className="w-full rounded-md border border-gray-300 p-2">
-                                            <option value="aktif">Aktif</option>
-                                            <option value="tidak-aktif">Tidak Aktif</option>
+                                        <select
+                                            name={field.name}
+                                            ref={field.ref}
+                                            value={field.value ? 'true' : 'false'}
+                                            onChange={e => field.onChange(e.target.value === 'true')}
+                                            onBlur={field.onBlur}
+                                            className="w-full rounded-md border border-gray-300 p-2"
+                                        >
+                                            <option value="true">Aktif</option>
+                                            <option value="false">Tidak Aktif</option>
                                         </select>
                                     </FormControl>
                                     <FormMessage />

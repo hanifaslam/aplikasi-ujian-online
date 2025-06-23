@@ -18,7 +18,7 @@ class MakeEventController extends Controller
 
     public function create()
     {
-        return Inertia::render('master-data/paket-soal/CreateEvent', [
+        return Inertia::render('master-data/paket-soal/create-event', [
             'event' => null,
         ]);
     }
@@ -52,16 +52,51 @@ class MakeEventController extends Controller
 
     public function edit($id)
     {
-        // Logic to show the form for editing an existing event
+        $event = Event::findOrFail($id);
+
+        // Konversi status ke string agar sesuai dengan form FE
+        $eventData = [
+            'id_event' => $event->id_event,
+            'nama_event' => $event->nama_event,
+            'status' => $event->status ? 'aktif' : 'tidak-aktif',
+        ];
+
+        return Inertia::render('master-data/paket-soal/create-event', [
+            'event' => $eventData,
+        ]);
     }
 
     public function update(Request $request, $id)
     {
-        // Logic to update an existing event
+        $request->validate([
+            'nama_event' => 'required|string|max:255',
+            'status' => 'required|boolean',
+        ]);
+
+        $event = Event::findOrFail($id);
+        $event->nama_event = $request->input('nama_event');
+        $event->status = $request->input('status');
+        $event->save();
+
+        return redirect()->route('master-data.event.getEvent')->with('success', 'Event berhasil diupdate!');
     }
 
     public function destroy($id)
     {
         // Logic to delete an existing event
+    }
+
+    public function list()
+    {
+        // Ambil semua event, bisa tambahkan where jika ingin filter tertentu
+        $events = Event::select('id_event', 'nama_event')->get();
+        return response()->json($events);
+    }
+
+    public function getEvent(){
+        $events = Event::select('id_event', 'nama_event', 'status')->get();
+        return Inertia::render('master-data/event/EventManager', [
+            'events' => $events,
+        ]);
     }
 }

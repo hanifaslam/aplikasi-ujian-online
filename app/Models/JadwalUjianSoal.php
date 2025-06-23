@@ -10,6 +10,8 @@ class JadwalUjianSoal extends Model
     protected $table = 't_jadwal_ujian_soal';
     public $timestamps = false;
 
+    protected $primaryKey = 'id_ujian';
+
     protected $fillable = [
         'id_ujian',
         'kd_bidang',
@@ -24,7 +26,7 @@ class JadwalUjianSoal extends Model
         'id_ujian' => 'integer',
         'kd_bidang' => 'integer',
         'total_soal' => 'integer',
-        'ujian_soal' => 'integer',
+        'ujian_soal' => 'string',
         'id_penjadwalan' => 'integer',
         'direction' => 'integer',
         'total_direction' => 'integer',
@@ -39,4 +41,5 @@ class JadwalUjianSoal extends Model
     {
         return $this->belongsTo(Bidang::class, 'kd_bidang', 'kode');
     }
+
 }
