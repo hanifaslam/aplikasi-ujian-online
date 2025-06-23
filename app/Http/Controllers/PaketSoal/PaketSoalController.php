@@ -13,6 +13,22 @@ use App\Models\Bidang;
 
 class PaketSoalController extends Controller
 {
+    public function destroy($id)
+    {
+        try {
+            // Hapus data terkait di tabel jadwal_ujian_soal
+            JadwalUjianSoal::where('id_ujian', $id)->delete();
+
+            // Hapus data di tabel jadwal_ujian
+            JadwalUjian::destroy($id);
+
+            Log::info('Paket soal deleted successfully:', ['id' => $id]);
+            return redirect()->back()->with('success', 'Paket soal berhasil dihapus');
+        } catch (\Exception $e) {
+            Log::error('Error deleting PaketSoal:', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Gagal menghapus paket soal');
+        }
+    }
     public function index(Request $request)
     {
         $pages = $request->query('pages', 10);

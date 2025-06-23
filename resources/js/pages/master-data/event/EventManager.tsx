@@ -99,11 +99,13 @@ function EventTable({
   const confirmDelete = () => {
     if (!targetId) return;
     router.delete(route('master-data.event.destroy', targetId), {
+      preserveState: true,
+      preserveScroll: true,
       onSuccess: () => {
-        toast.success(`Event dengan ID ${targetId} berhasil dihapus`);
+        toast.success('Event berhasil dihapus');
       },
       onError: () => {
-        toast.error('Gagal menghapus event!');
+        toast.error('Gagal menghapus event');
       },
     });
     setOpen(false);
@@ -128,8 +130,9 @@ function EventTable({
       render: (event: EventType) => (
         <div className="flex justify-center">
           <span
-            className={`px-3 py-1 rounded text-white font-semibold text-sm ${
+            className={`px-3 py-1 rounded text-white font-semibold text-sm min-w-[100px] text-center ${
               event.status === 1 ? 'bg-green-600' : 'bg-red-600'
+
             }`}
           >
             {event.status === 1 ? 'Aktif' : 'Tidak Aktif'}
@@ -212,6 +215,7 @@ function EventTable({
           );
         }}
       />
+      {/* Dialog konfirmasi hapus */}
       <CAlertDialog open={open} setOpen={setOpen} onContinue={confirmDelete} />
     </>
   );

@@ -67,8 +67,19 @@ export default function PaketSoalManager() {
     setOpen(true);
   };
 
+  // PERBAIKI: Fungsi ini HARUS di luar render kolom!
   const confirmDelete = () => {
-    toast.success(`Paket soal dengan ID ${targetId} berhasil dihapus`);
+    if (!targetId) return;
+    router.delete(route('master-data.paket-soal.destroy', targetId), {
+      preserveState: true,
+      preserveScroll: true,
+      onSuccess: () => {
+        toast.success('Paket soal berhasil dihapus');
+      },
+      onError: () => {
+        toast.error('Gagal menghapus paket soal');
+      },
+    });
     setOpen(false);
   };
 
@@ -78,7 +89,6 @@ export default function PaketSoalManager() {
     { label: 'ID', className: 'text-center w-[80px]', render: (d: typeof data[0]) => <div className="text-center">{d.id}</div> },
     { label: 'Nama Paket Soal', className: 'w-[300px]', render: (d: typeof data[0]) => d.nama },
     { label: 'Event', className: 'w-[200px]', render: (d: typeof data[0]) => d.event },
-    { label: 'Bidang', className: 'w-[150px]', render: (d: typeof data[0]) => d.bidang },
     {
       label: 'Jumlah Soal',
       className: 'text-center w-[150px]',

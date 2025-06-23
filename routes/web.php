@@ -194,7 +194,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/', [PaketSoalEditController::class, 'store'])->name('store');
             Route::get('/{paket_soal}', [PaketSoalEditController::class, 'edit'])->name('edit');
             Route::put('/{paket_soal}', [PaketSoalEditController::class, 'update'])->name('update');
-            Route::delete('/{paket_soal}', [PaketSoalController::class, 'delete'])->name('destroy');
+            Route::delete('/{paket_soal}', [PaketSoalController::class, 'destroy'])->name('destroy');
             Route::post('/store', [PaketSoalEditController::class, 'store_data'])->name('store_data');
             Route::get('/{paket_soal}/detail', [PaketSoalController::class, 'show'])->name('show');
         });

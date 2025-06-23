@@ -5,11 +5,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   Form,
-  FormField,
   FormItem,
   FormLabel,
   FormControl,
-  FormMessage
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { CButton } from '@/components/ui/c-button';
@@ -59,20 +57,6 @@ export default function PaketSoalDetail() {
         </div>
         <Form {...form}>
           <form className="space-y-6 max-w-xl">
-            {/* Nama Ujian */}
-            <FormField
-              control={form.control}
-              name="nama_ujian"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nama Ujian</FormLabel>
-                  <FormControl>
-                    <Input {...field} readOnly className="w-full" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             {/* Event */}
             <FormItem className="min-w-0 w-full">
@@ -90,7 +74,7 @@ export default function PaketSoalDetail() {
 
             {/* Bidang */}
             <FormItem>
-              <FormLabel>Bidang</FormLabel>
+              <FormLabel>Nama Ujian</FormLabel>
               <FormControl>
                 <Input value={paketSoal.bidang} readOnly className="w-full" />
               </FormControl>
