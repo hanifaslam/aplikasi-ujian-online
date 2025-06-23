@@ -150,7 +150,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             return Inertia::render('banksoalcreate');
         })->name('bank.soal.create');
         // Route edit bank soal
-        Route::put('bank-soal/{id}', [BankSoalController::class, 'update'])->name('bank.soal.update');
+        // Route::put('bank-soal/{id}', [BankSoalController::class, 'update'])->name('bank.soal.update');
         Route::get('bank-soal/{id}/edit', [BankSoalController::class, 'edit'])->name('bank.soal.edit');
 
         Route::post('bank-soal', [BankSoalController::class, 'store'])->name('bank.soal.store');
@@ -172,6 +172,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{id}/edit', [MakeEventController::class, 'edit'])->name('edit');
             Route::put('/{id}', [MakeEventController::class, 'update'])->name('update');
             Route::get('/', [MakeEventController::class, 'getEvent'])->name('getEvent');
+            Route::get('/{id}', [MakeEventController::class, 'show'])->name('show');
         });
 
         Route::prefix('jenis-ujian')->name('jenis-ujian.')->group(function () {
@@ -185,6 +186,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Route untuk paket soal
         Route::prefix('paket-soal')->name('paket-soal.')->group(function () {
+
             Route::get('/', [PaketSoalController::class, 'index'])->name('index');
             Route::get('/create', [PaketSoalEditController::class, 'create'])->name('create');
             Route::get('/create-event', fn () => Inertia::render('master-data/paket-soal/create-event'))->name('create-event');
@@ -193,6 +195,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{paket_soal}', [PaketSoalEditController::class, 'update'])->name('update');
             Route::delete('/{paket_soal}', [PaketSoalController::class, 'delete'])->name('destroy');
             Route::post('/store', [PaketSoalEditController::class, 'store_data'])->name('store_data');
+            Route::get('/{paket_soal}/detail', [PaketSoalController::class, 'show'])->name('show');
         });
 
         Route::get('/kategorisoal', [BankSoalController::class, 'getKategoriSoal']);

@@ -34,13 +34,20 @@ export default function PaketSoalManager() {
   const [targetId, setTargetId] = useState<number | null>(null);
 
   // Ambil data dari props inertia
-  const { jadwalUjian = [], jadwalUjianSoal = [] } = (usePage().props as unknown) as {
-    jadwalUjian: JadwalUjianType[];
-    jadwalUjianSoal: JadwalUjianSoalType[];
-  };
+  const { jadwalUjian = { data: [], current_page: 1, last_page: 1, per_page: 10, total: 0 }, jadwalUjianSoal = [] } =
+    usePage().props as unknown as {
+      jadwalUjian: {
+        data: JadwalUjianType[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+      };
+      jadwalUjianSoal: JadwalUjianSoalType[];
+    };
 
   // Gabungkan data jadwalUjian dan jadwalUjianSoal berdasarkan id_ujian
-  const data = jadwalUjian.map((item) => {
+  const data = jadwalUjian.data.map((item) => {
     const soal = jadwalUjianSoal.find((s) => s.id_ujian === item.id_ujian);
     return {
       id: item.id_ujian,
@@ -94,7 +101,7 @@ export default function PaketSoalManager() {
           />
           <CButtonIcon
             icon={Pencil}
-            onClick={() => router.visit(`/master-data/paket-soal/${d.id}/edit`)}
+            onClick={() => router.visit(`/master-data/paket-soal/${d.id}`)}
           />
           <CButtonIcon
             icon={Trash2}
@@ -113,17 +120,28 @@ export default function PaketSoalManager() {
         <ContentTitle title="Data Paket Soal" showButton onButtonClick={() => router.visit('/master-data/paket-soal/create')} />
 
         <div className="mt-4 flex items-center justify-between">
-          <EntriesSelector currentValue={10} options={[10, 25, 50]} routeName="#" />
-          <SearchInputMenu defaultValue={''} routeName="#" />
+          <EntriesSelector
+            currentValue={jadwalUjian.per_page}
+            options={[10, 25, 50]}
+            routeName="master-data.paket-soal.index"
+            paramName="pages"
+          />
+          <SearchInputMenu
+            defaultValue={''}
+            routeName="master-data.paket-soal.index"
+            paramName="search"
+          />
         </div>
 
         <CustomTable columns={columns} data={data} />
         <PaginationWrapper
-          currentPage={1}
-          lastPage={1}
-          perPage={10}
-          total={data.length}
-          onNavigate={() => {}}
+          currentPage={jadwalUjian.current_page}
+          lastPage={jadwalUjian.last_page}
+          perPage={jadwalUjian.per_page}
+          total={jadwalUjian.total}
+          onNavigate={(page) => {
+            router.visit(route('master-data.paket-soal.index', { pages: jadwalUjian.per_page, page }), { preserveScroll: true });
+          }}
         />
 
         <CAlertDialog open={open} setOpen={setOpen} onContinue={confirmDelete} />

@@ -47,7 +47,11 @@ class MakeEventController extends Controller
 
     public function show($id)
     {
-        // Logic to display a specific event
+        $event = Event::findOrFail($id);
+
+        return Inertia::render('master-data/event/EventDetail', [
+            'event' => $event,
+        ]);
     }
 
     public function edit($id)
@@ -93,8 +97,18 @@ class MakeEventController extends Controller
         return response()->json($events);
     }
 
-    public function getEvent(){
-        $events = Event::select('id_event', 'nama_event', 'status')->get();
+    public function getEvent(Request $request){
+        $pages = $request->query('pages', 10);
+        $search = $request->query('search', null);
+
+        $eventQuery = Event::select('id_event', 'nama_event', 'status');
+
+        if ($search) {
+            $eventQuery->where('nama_event', 'like', '%' . $search . '%');
+        }
+
+        $events = $eventQuery->paginate($pages);
+
         return Inertia::render('master-data/event/EventManager', [
             'events' => $events,
         ]);
