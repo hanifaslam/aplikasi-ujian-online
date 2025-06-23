@@ -134,10 +134,6 @@ function PenjadwalanTable({ data: examData, pageFilters: filters }: { data: Pagi
             render: (exam: JadwalUjian) => exam.kuota,
         },
         {
-            label: 'Tipe',
-            render: (exam: JadwalUjian) => exam.online_offline === 1 ? 'Online' : 'Offline',
-        },
-        {
             label: 'Aksi',
             className: 'w-[100px] text-center',
             render: (exam: JadwalUjian) => (

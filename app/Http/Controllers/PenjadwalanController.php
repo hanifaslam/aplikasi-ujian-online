@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Penjadwalan;
 use App\Models\Event;
-use App\Models\MBidang;
+use App\Models\KategoriSoal;
+use App\Models\JadwalUjian;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
 
 class PenjadwalanController extends Controller
 {
@@ -16,8 +18,8 @@ class PenjadwalanController extends Controller
 
         $query = Penjadwalan::with([
             'event',           // Relasi ke Event untuk mendapatkan nama_event
-            'event.jadwalUjian'
-              // Event → JadwalUjian → Peserta (melalui id_event)
+            'event.jadwalUjian',
+            'jenis_ujian'      // Relasi ke KategoriSoal untuk nama kategori
         ]);
 
         if ($search) {
@@ -44,7 +46,7 @@ class PenjadwalanController extends Controller
                 'waktu_selesai' => $penjadwalan->waktu_selesai,
                 'kuota' => $penjadwalan->kuota,
                 'status' => $penjadwalan->status,
-                'tipe_ujian' => $penjadwalan->tipe_ujian,
+                'tipe_ujian' => $penjadwalan->tipe_ujian, // Akan menggunakan accessor dari model
                 'id_paket_ujian' => $penjadwalan->id_paket_ujian,
                 'jenis_ujian' => $penjadwalan->jenis_ujian,
                 'kode_jadwal' => $penjadwalan->kode_jadwal,
@@ -75,13 +77,13 @@ class PenjadwalanController extends Controller
 
     public function create()
     {
-        // Ambil data Event dan MBidang untuk dropdown
+        // Ambil data Event dan KategoriSoal
         $events = Event::where('status', 1)->get(['id_event', 'nama_event']);
-        $bidangs = MBidang::all(['kode', 'nama']);
+        $kategoriSoal = KategoriSoal::all(['id', 'kategori']);
 
         return Inertia::render('penjadwalan/form.penjadwalan-manager', [
             'events' => $events,
-            'bidangs' => $bidangs,
+            'kategoriSoal' => $kategoriSoal,
         ]);
     }
 
@@ -89,7 +91,7 @@ class PenjadwalanController extends Controller
     {
         $validated = $request->validate([
             'id_paket_ujian' => 'required|integer|exists:data_db.t_event,id_event',
-            'tipe_ujian' => 'required|string|exists:data_db.m_bidang,kode',
+            'tipe_ujian' => 'required|integer|exists:data_db.t_kat_soal,id',
             'tanggal' => 'required|date',
             'waktu_mulai' => 'required',
             'waktu_selesai' => 'required|after:waktu_mulai',
@@ -97,68 +99,44 @@ class PenjadwalanController extends Controller
             'jenis_ujian' => 'required|integer',
         ]);
 
-        $penjadwalan = Penjadwalan::create($validated);
+        return DB::transaction(function () use ($validated) {
+            // Ambil data kategori dan event sebelum create
+            $kategoriSoal = KategoriSoal::find($validated['tipe_ujian']);
+            $event = Event::find($validated['id_paket_ujian']);
+            
+            // Generate kode jadwal
+            $kodeJadwal = $this->generateKodeJadwal($validated['id_paket_ujian'], $validated['tipe_ujian']);
+            
+            // Tambahkan kode jadwal ke data yang akan disimpan
+            $validated['kode_jadwal'] = $kodeJadwal;
 
-        // Load relasi untuk response
-        $penjadwalan->load(['event', 'jenis_ujian']);
+            // Buat Penjadwalan
+            $penjadwalan = Penjadwalan::create($validated);
 
-        return redirect()->route('penjadwalan.index')
-            ->with('success', "Jadwal ujian {$penjadwalan->event->nama_event} berhasil ditambahkan.");
-    }
+            // Buat JadwalUjian otomatis
+            $this->createJadwalUjian($penjadwalan);
 
-    public function show(Penjadwalan $penjadwalan)
-    {
-        // Load relasi Event dan JadwalUjian melalui Event
-        $penjadwalan->load([
-            'event.jadwalUjian.peserta.jurusanRef'
-        ]);
+            // Prepare nama untuk success message
+            $kategoriNama = $kategoriSoal ? $kategoriSoal->kategori : 'Kategori Ujian';
+            $namaEvent = $event ? $event->nama_event : 'Event';
 
-        return Inertia::render('penjadwalan/detail', [
-            'penjadwalan' => [
-                'id_penjadwalan' => $penjadwalan->id_penjadwalan,
-                'tanggal' => $penjadwalan->tanggal,
-                'waktu_mulai' => $penjadwalan->waktu_mulai,
-                'waktu_selesai' => $penjadwalan->waktu_selesai,
-                'kuota' => $penjadwalan->kuota,
-                'status' => $penjadwalan->status,
-                
-                'event' => $penjadwalan->event,
-                
-                // Detail peserta dari JadwalUjian melalui Event
-                'peserta_list' => $penjadwalan->event?->jadwalUjian?->map(function($jadwal) {
-                    return [
-                        'id_ujian' => $jadwal->id_ujian,
-                        'nama_ujian' => $jadwal->nama_ujian,
-                        'kode_kelas' => $jadwal->kode_kelas,
-                        'peserta' => [
-                            'id' => $jadwal->peserta?->id,
-                            'nama' => $jadwal->peserta?->nama,
-                            'nis' => $jadwal->peserta?->nis,
-                            'jurusan' => $jadwal->peserta?->jurusanRef?->nama_jurusan,
-                        ]
-                    ];
-                }) ?? [],
-                
-                'statistik' => [
-                    'total_jadwal_ujian' => $penjadwalan->event?->jadwalUjian?->count() ?? 0,
-                    'total_peserta' => $penjadwalan->event?->jadwalUjian?->count() ?? 0,
-                ],
-            ]
-        ]);
+            return redirect()->route('penjadwalan.index')
+                ->with('success', "Jadwal ujian {$kategoriNama} - {$namaEvent} dengan kode {$kodeJadwal} berhasil ditambahkan.");
+        });
     }
 
     public function edit(Penjadwalan $penjadwalan)
     {
         // Load relasi yang diperlukan
-        $penjadwalan->load(['event', 'jenis_ujian']);
+        $penjadwalan->load(['event']);
         
         $events = Event::where('status', 1)->get(['id_event', 'nama_event']);
-        $bidangs = MBidang::all(['kode', 'nama']);
+        $kategoriSoal = KategoriSoal::all(['id', 'kategori']);
 
         return Inertia::render('penjadwalan/form.penjadwalan-manager', [
             'penjadwalan' => $penjadwalan,
             'events' => $events,
-            'bidangs' => $bidangs,
+            'kategoriSoal' => $kategoriSoal,
         ]);
     }
 
@@ -166,7 +144,7 @@ class PenjadwalanController extends Controller
     {
         $validated = $request->validate([
             'id_paket_ujian' => 'required|integer|exists:data_db.t_event,id_event',
-            'tipe_ujian' => 'required|string|exists:data_db.m_bidang,kode',
+            'tipe_ujian' => 'required|integer|exists:data_db.t_kat_soal,id',
             'tanggal' => 'required|date',
             'waktu_mulai' => 'required',
             'waktu_selesai' => 'required|after:waktu_mulai',
@@ -174,33 +152,115 @@ class PenjadwalanController extends Controller
             'jenis_ujian' => 'required|integer',
         ]);
 
-        $penjadwalan->update($validated);
+        return DB::transaction(function () use ($validated, $penjadwalan) {
+            // Jika event atau kategori berubah, generate ulang kode jadwal
+            if ($penjadwalan->id_paket_ujian != $validated['id_paket_ujian'] || 
+                $penjadwalan->tipe_ujian != $validated['tipe_ujian']) {
+                $validated['kode_jadwal'] = $this->generateKodeJadwal($validated['id_paket_ujian'], $validated['tipe_ujian']);
+            }
 
-        // Load relasi untuk response
-        $penjadwalan->load(['event', 'jenis_ujian']);
+            $penjadwalan->update($validated);
 
-        return redirect()->route('penjadwalan.index')
-            ->with('success', "Jadwal ujian {$penjadwalan->event->nama_event} berhasil diperbarui.");
+            // Ambil data kategori dan event untuk success message
+            $kategoriSoal = KategoriSoal::find($validated['tipe_ujian']);
+            $event = Event::find($validated['id_paket_ujian']);
+
+            $kategoriNama = $kategoriSoal ? $kategoriSoal->kategori : 'Kategori Ujian';
+            $namaEvent = $event ? $event->nama_event : 'Event';
+
+            return redirect()->route('penjadwalan.index')
+                ->with('success', "Jadwal ujian {$kategoriNama} - {$namaEvent} berhasil diperbarui.");
+        });
     }
 
     public function destroy(Penjadwalan $penjadwalan)
     {
-        // Load relasi untuk mendapatkan nama event dan cek jadwal ujian
-        $penjadwalan->load(['event.jadwalUjian']);
-        $namaEvent = $penjadwalan->event->nama_event;
+        return DB::transaction(function () use ($penjadwalan) {
+            // Load relasi untuk mendapatkan nama event
+            $penjadwalan->load(['event']);
+            $namaEvent = $penjadwalan->event->nama_event;
 
-        // Cek apakah ada jadwal ujian dalam event ini
-        $jadwalUjianCount = $penjadwalan->event?->jadwalUjian?->count() ?? 0;
-        
-        if ($jadwalUjianCount > 0) {
+            // Hapus JadwalUjian yang terkait dengan penjadwalan ini
+            JadwalUjian::where('id_penjadwalan', $penjadwalan->id_penjadwalan)->delete();
+
+            // Hapus penjadwalan
+            $penjadwalan->delete();
+
             return redirect()->back()
-                ->with('error', "Tidak dapat menghapus penjadwalan {$namaEvent} karena masih ada {$jadwalUjianCount} jadwal ujian dalam event ini.");
-        }
-
-        $penjadwalan->delete();
-
-        return redirect()->back()
-            ->with('success', "Penjadwalan {$namaEvent} berhasil dihapus.");
+                ->with('success', "Penjadwalan {$namaEvent} dan jadwal ujian terkait berhasil dihapus.");
+        });
     }
 
+    /**
+     * Generate kode jadwal seperti format TFL0002
+     */
+    private function generateKodeJadwal($idEvent, $idKategori)
+    {
+        // Ambil event dan kategori
+        $event = Event::find($idEvent);
+        $kategori = KategoriSoal::find($idKategori);
+
+        if (!$event || !$kategori) {
+            return 'UJI0001';
+        }
+
+        // Ambil 3 huruf pertama dari kombinasi event dan kategori
+        $eventCode = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $event->nama_event), 0, 2));
+        $kategoriCode = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $kategori->kategori), 0, 1));
+        
+        // Kombinasi 3 huruf
+        $prefix = $eventCode . $kategoriCode;
+        
+        // Jika kurang dari 3 huruf, tambahkan 'X'
+        $prefix = str_pad($prefix, 3, 'X');
+        
+        // Jika lebih dari 3 huruf, potong menjadi 3
+        $prefix = substr($prefix, 0, 3);
+
+        // Cari nomor urut terakhir untuk prefix ini
+        $lastKode = Penjadwalan::where('kode_jadwal', 'LIKE', $prefix . '%')
+            ->orderBy('kode_jadwal', 'desc')
+            ->first();
+
+        if ($lastKode) {
+            // Ambil 4 digit terakhir dan tambah 1
+            $lastNumber = (int) substr($lastKode->kode_jadwal, -4);
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        // Format 4 digit dengan leading zero
+        $number = str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+        // Gabungkan prefix + number (format: ABC0001)
+        return $prefix . $number;
+    }
+
+    /**
+     * Buat JadwalUjian otomatis saat Penjadwalan dibuat
+     */
+    private function createJadwalUjian($penjadwalan)
+    {
+        // Load relasi event dan ambil kategori manual
+        $penjadwalan->load(['event']);
+        $kategoriSoal = KategoriSoal::find($penjadwalan->tipe_ujian);
+
+        // Ambil nama kategori saja (bagian sebelum tanda "-")
+        $kategoriNama = $kategoriSoal ? $kategoriSoal->kategori : 'Kategori Tidak Diketahui';
+        
+        // Jika kategori mengandung tanda "-", ambil bagian sebelumnya saja
+        if (strpos($kategoriNama, '-') !== false) {
+            $kategoriNama = trim(explode('-', $kategoriNama)[0]);
+        }
+
+        // Buat JadwalUjian dengan nama ujian = tipe ujian saja
+        JadwalUjian::create([
+            'nama_ujian' => $kategoriNama,
+            'kode_kelas' => null, // Set sebagai NaN sesuai permintaan
+            'id_event' => $penjadwalan->id_paket_ujian,
+            'kode_part' => 1, // Default atau ambil dari logic tertentu
+            'id_penjadwalan' => $penjadwalan->id_penjadwalan,
+        ]);
+    }
 }
