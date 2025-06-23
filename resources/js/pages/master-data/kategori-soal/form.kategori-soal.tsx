@@ -1,132 +1,165 @@
+import AppLayout from '@/layouts/app-layout';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
+
+import { ContentTitle } from '@/components/content-title';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import AppLayout from '@/layouts/app-layout';
+import { Label } from '@/components/ui/label';
 import { type BreadcrumbItem } from '@/types';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Head, router, usePage } from '@inertiajs/react';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import { z } from 'zod';
 
-// Interface untuk data kategori soal
+// Breadcrumb untuk navigasi
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Master Data',
+        href: '#',
+    },
+    {
+        title: 'Kategori Ujian',
+        href: route('master-data.kategori-soal.index'),
+    },
+    {
+        title: 'Form',
+        href: '#',
+    },
+];
+
+// Interface untuk data kategori ujian
 interface KategoriSoal {
-    id?: number;
+    id: number;
     kategori: string;
 }
 
-// Schema validasi dengan Zod
-const formSchema = z.object({
-    kategori: z.string().min(1, 'Nama kategori wajib diisi').max(100, 'Nama kategori maksimal 100 karakter'),
-});
+// Props untuk komponen
+interface FormKategoriUjianProps {
+    isEdit: boolean;
+    kategori: KategoriSoal | null;
+}
 
-export default function FormKategoriSoal() {    // Ambil data dari props Inertia
-    const { isEdit, kategori, flash } = usePage().props as unknown as {
-        isEdit: boolean;
-        kategori: KategoriSoal | null;
+export default function FormKategoriUjian({ isEdit, kategori }: FormKategoriUjianProps) {
+    // Flash messages
+    const { flash } = usePage<{
         flash: {
             success?: string;
             error?: string;
         };
-    };
+    }>().props;
 
-    // Breadcrumb navigation
-    const breadcrumbs: BreadcrumbItem[] = [
-        {
-            title: 'Master Data',
-            href: '#',
-        },
-        {
-            title: 'Kategori Soal',
-            href: route('master-data.kategori-soal.index'),
-        },
-        {
-            title: isEdit ? 'Edit Kategori Soal' : 'Tambah Kategori Soal',
-            href: '#',
-        },
-    ];
-
-    // Setup form dengan react-hook-form dan zod
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            kategori: kategori?.kategori ?? '',
-        },
+    // Form data
+    const { data, setData, post, put, processing, errors, reset } = useForm({
+        kategori: kategori?.kategori || '',
     });
 
-    // Handle flash messages
+    // Tampilkan flash message
     useEffect(() => {
         if (flash.success) toast.success(flash.success);
         if (flash.error) toast.error(flash.error);
     }, [flash]);
 
-    // Submit handler
-    function onSubmit(values: z.infer<typeof formSchema>) {
-        if (isEdit && kategori) {
-            // Update kategori soal
-            router.put(route('master-data.kategori-soal.update', kategori.id), values, {
-                preserveScroll: true,
-                onSuccess: () => toast.success('Kategori soal berhasil diperbarui!'),
-                onError: (errors) => console.error('Error:', errors),
-            });
-        } else {
-            // Create new kategori soal
-            router.post(route('master-data.kategori-soal.store'), values, {
-                preserveScroll: true,
-                onSuccess: () => toast.success('Kategori soal berhasil ditambahkan!'),
-                onError: (errors) => console.error('Error:', errors),
+    // Handle submit form
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();        if (isEdit && kategori) {
+            put(route('master-data.kategori-soal.update', kategori.id), {
+                onSuccess: () => {
+                    toast.success('Kategori ujian berhasil diperbarui');
+                    // Redirect dengan refresh data tapi preserve state lain
+                    router.visit(route('master-data.kategori-soal.index'), {
+                        only: ['data'],
+                        preserveState: false,
+                        preserveScroll: false,
+                        replace: true
+                    });
+                },
+                onError: () => {
+                    toast.error('Gagal memperbarui kategori ujian');
+                },
+            });        } else {
+            post(route('master-data.kategori-soal.store'), {
+                onSuccess: () => {
+                    toast.success('Kategori ujian berhasil ditambahkan');
+                    // Redirect dengan refresh data tapi preserve state lain
+                    router.visit(route('master-data.kategori-soal.index'), {
+                        only: ['data'],
+                        preserveState: false,
+                        preserveScroll: false,
+                        replace: true
+                    });
+                },
+                onError: () => {
+                    toast.error('Gagal menambahkan kategori ujian');
+                },
             });
         }
-    }
+    };
+
+    // Handle batal
+    const handleCancel = () => {
+        reset();
+        router.visit(route('master-data.kategori-soal.index'));
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={isEdit ? 'Edit Kategori Soal' : 'Tambah Kategori Soal'} />
+            <Head title={isEdit ? 'Edit Kategori Ujian' : 'Tambah Kategori Ujian'} />
 
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+                {/* Judul halaman */}
+                <ContentTitle 
+                    title={isEdit ? 'Edit Kategori Ujian' : 'Tambah Kategori Ujian'} 
+                />
+
+                {/* Form */}
                 <Card className="mx-auto w-full max-w-2xl">
                     <CardHeader>
-                        <CardTitle>{isEdit ? 'Edit Kategori Soal' : 'Tambah Kategori Soal'}</CardTitle>
+                        <CardTitle>
+                            {isEdit ? 'Edit Data Kategori Ujian' : 'Tambah Data Kategori Ujian'}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                                {/* Nama Kategori */}
-                                <FormField
-                                    control={form.control}
-                                    name="kategori"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nama Kategori Soal *</FormLabel>
-                                            <FormControl>
-                                                <Input 
-                                                    placeholder="Masukkan nama kategori soal (contoh: TEPPS, TOEFL)" 
-                                                    {...field} 
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* Input Nama Kategori */}
+                            <div className="space-y-2">
+                                <Label htmlFor="kategori">
+                                    Nama Kategori Ujian <span className="text-red-500">*</span>
+                                </Label>
+                                <Input
+                                    id="kategori"
+                                    type="text"
+                                    value={data.kategori}
+                                    onChange={(e) => setData('kategori', e.target.value)}
+                                    placeholder="Masukkan nama kategori ujian"
+                                    className={errors.kategori ? 'border-red-500' : ''}
                                 />
+                                {errors.kategori && (
+                                    <p className="text-sm text-red-500">{errors.kategori}</p>
+                                )}
+                            </div>
 
-                                {/* Tombol Submit dan Kembali */}
-                                <div className="flex items-center gap-4 pt-4">
-                                    <Button type="submit" className="w-32">
-                                        {isEdit ? 'Update' : 'Simpan'}
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => router.visit(route('master-data.kategori-soal.index'))}
-                                        className="w-32"
-                                    >
-                                        Kembali
-                                    </Button>
-                                </div>
-                            </form>
-                        </Form>
+                            {/* Tombol aksi */}
+                            <div className="flex gap-4">
+                                <Button 
+                                    type="submit" 
+                                    disabled={processing}
+                                    className="flex-1"
+                                >
+                                    {processing 
+                                        ? (isEdit ? 'Menyimpan...' : 'Menambahkan...') 
+                                        : (isEdit ? 'Simpan Perubahan' : 'Tambah Kategori Ujian')
+                                    }
+                                </Button>
+                                <Button 
+                                    type="button" 
+                                    variant="outline" 
+                                    onClick={handleCancel}
+                                    disabled={processing}
+                                    className="flex-1"
+                                >
+                                    Batal
+                                </Button>
+                            </div>
+                        </form>
                     </CardContent>
                 </Card>
             </div>

@@ -20,18 +20,18 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '#',
     },
     {
-        title: 'Kategori Soal',
+        title: 'Kategori Ujian',
         href: route('master-data.kategori-soal.index'),
     },
 ];
 
-// Interface untuk data kategori soal
+// Interface untuk data kategori ujian
 interface KategoriSoal {
     id: number;
     kategori: string;
 }
 
-export default function KategoriSoalManager() {
+export default function KategoriUjianManager() {
     // Ambil props dari server (via inertia)
     const { data: kategoriData, filters, flash } = usePage().props as unknown as {
         data: {
@@ -74,11 +74,19 @@ export default function KategoriSoalManager() {
                 router.delete(route('master-data.kategori-soal.destroy', targetId), {
                     preserveState: true,
                     preserveScroll: true,
+                    onSuccess: () => {
+                        // Data akan otomatis terupdate karena preserveState
+                        setOpen(false);
+                        setTargetId(null);
+                    },
+                    onError: () => {
+                        toast.error('Gagal hapus data kategori ujian');
+                        setOpen(false);
+                    }
                 });
             }
         } catch {
             toast.error('Gagal hapus data');
-        } finally {
             setOpen(false);
         }
     };
@@ -131,12 +139,12 @@ export default function KategoriSoalManager() {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Manajemen Kategori Soal" />
+            <Head title="Manajemen Kategori Ujian" />
 
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 {/* Judul + tombol tambah */}
                 <ContentTitle 
-                    title="Kategori Soal" 
+                    title="Kategori Ujian" 
                     showButton 
                     onButtonClick={() => router.visit(route('master-data.kategori-soal.create'))} 
                 />

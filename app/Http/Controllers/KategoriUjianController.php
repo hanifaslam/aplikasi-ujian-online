@@ -9,12 +9,12 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * =======================================================================
- * KATEGORI SOAL CONTROLLER - TUGAS JOBDESK KATEGORI SOAL
+ * KATEGORI UJIAN CONTROLLER - TUGAS JOBDESK KATEGORI UJIAN
  * =======================================================================
  * 
  * DESKRIPSI:
- * Controller untuk mengelola master data kategori soal dalam aplikasi ujian online.
- * Kategori soal adalah pengelompokan/klasifikasi soal berdasarkan topik/bidang tertentu.
+ * Controller untuk mengelola master data kategori ujian dalam aplikasi ujian online.
+ * Kategori ujian adalah pengelompokan/klasifikasi ujian berdasarkan topik/bidang tertentu.
  * 
  * DATABASE:
  * - Tabel utama: data_db.t_kat_soal
@@ -24,19 +24,19 @@ use Illuminate\Support\Facades\DB;
  * RELASI & INTEGRASI:
  * - Digunakan oleh: t_direction (field: kategori_soal)
  * - Digunakan oleh: Bank soal dan sistem lain melalui dropdown API
- * - Foreign key reference: kategori soal sebagai string di tabel lain
+ * - Foreign key reference: kategori ujian sebagai string di tabel lain
  * 
  * FRONTEND PAGES:
  * - Index: resources/js/pages/master-data/kategori-soal/kategori-soal.tsx
  * - Form: resources/js/pages/master-data/kategori-soal/form.kategori-soal.tsx
- * - Menu: components/app-sidebar.tsx (Master Data > Kategori Soal)
+ * - Menu: components/app-sidebar.tsx (Master Data > Kategori Ujian)
  * 
  * ROUTES:
  * - Web routes: routes/web.php (master-data.kategori-soal.*)
  * - API routes: /api/kategori-soal untuk dropdown
  * 
  * FITUR UTAMA:
- * - CRUD kategori soal (Create, Read, Update, Delete)
+ * - CRUD kategori ujian (Create, Read, Update, Delete)
  * - Search & pagination
  * - Validasi unique kategori
  * - Soft constraint checking sebelum delete
@@ -46,9 +46,9 @@ use Illuminate\Support\Facades\DB;
  */
 class KategoriUjianController extends Controller
 {    /**
-     * DISPLAY INDEX PAGE - KATEGORI SOAL
+     * DISPLAY INDEX PAGE - KATEGORI UJIAN
      * 
-     * Menampilkan halaman utama daftar kategori soal dengan fitur:
+     * Menampilkan halaman utama daftar kategori ujian dengan fitur:
      * - Pagination (default 10 per halaman)
      * - Search berdasarkan nama kategori
      * - Data dari tabel: data_db.t_kat_soal
@@ -79,9 +79,9 @@ class KategoriUjianController extends Controller
     }
 
     /**
-     * DISPLAY CREATE FORM - KATEGORI SOAL
+     * DISPLAY CREATE FORM - KATEGORI UJIAN
      * 
-     * Menampilkan form untuk membuat kategori soal baru
+     * Menampilkan form untuk membuat kategori ujian baru
      * 
      * Frontend: resources/js/pages/master-data/kategori-soal/form.kategori-soal.tsx
      * Route: GET /master-data/kategori-soal/create
@@ -95,9 +95,9 @@ class KategoriUjianController extends Controller
     }
 
     /**
-     * STORE NEW KATEGORI SOAL
+     * STORE NEW KATEGORI UJIAN
      * 
-     * Menyimpan kategori soal baru ke database
+     * Menyimpan kategori ujian baru ke database
      * - Validasi: required, max 100 char, unique di t_kat_soal
      * - Manual ID increment (karena bukan auto_increment)
      * - Akan otomatis tersedia di dropdown sistem lain
@@ -120,13 +120,13 @@ class KategoriUjianController extends Controller
         ]);
 
         return redirect()->route('master-data.kategori-soal.index')
-            ->with('success', 'Kategori soal berhasil ditambahkan');
+            ->with('success', 'Kategori ujian berhasil ditambahkan');
     }
 
     /**
-     * DISPLAY EDIT FORM - KATEGORI SOAL
+     * DISPLAY EDIT FORM - KATEGORI UJIAN
      * 
-     * Menampilkan form edit untuk kategori soal yang sudah ada
+     * Menampilkan form edit untuk kategori ujian yang sudah ada
      * 
      * Frontend: resources/js/pages/master-data/kategori-soal/form.kategori-soal.tsx
      * Route: GET /master-data/kategori-soal/{id}/edit
@@ -142,9 +142,9 @@ class KategoriUjianController extends Controller
     }
 
     /**
-     * UPDATE KATEGORI SOAL
+     * UPDATE KATEGORI UJIAN
      * 
-     * Update data kategori soal yang sudah ada
+     * Update data kategori ujian yang sudah ada
      * - Validasi: required, max 100 char, unique kecuali record sendiri
      * - Perubahan akan otomatis ter-reflect di sistem yang menggunakan
      * 
@@ -163,13 +163,13 @@ class KategoriUjianController extends Controller
         ]);
 
         return redirect()->route('master-data.kategori-soal.index')
-            ->with('success', 'Kategori soal berhasil diperbarui');
+            ->with('success', 'Kategori ujian berhasil diperbarui');
     }
 
     /**
-     * DELETE KATEGORI SOAL
+     * DELETE KATEGORI UJIAN
      * 
-     * Hapus kategori soal dengan pengecekan constraint
+     * Hapus kategori ujian dengan pengecekan constraint
      * - Cek penggunaan di t_direction (field: kategori_soal)
      * - Jika digunakan, tidak bisa dihapus (soft constraint)
      * - Bisa ditambah pengecekan tabel lain sesuai kebutuhan
@@ -188,19 +188,19 @@ class KategoriUjianController extends Controller
 
         if ($isUsed) {
             return redirect()->back()
-                ->with('error', 'Kategori soal tidak dapat dihapus karena sedang digunakan');
+                ->with('error', 'Kategori ujian tidak dapat dihapus karena sedang digunakan');
         }
 
         $kategori->delete();
 
         return redirect()->back()
-            ->with('success', 'Kategori soal berhasil dihapus');
+            ->with('success', 'Kategori ujian berhasil dihapus');
     }
 
     /**
      * API ENDPOINT - GET KATEGORI LIST FOR DROPDOWN
      * 
-     * Endpoint API untuk mendapatkan list kategori soal
+     * Endpoint API untuk mendapatkan list kategori ujian
      * Digunakan oleh sistem lain untuk dropdown/select options:
      * - Bank soal
      * - Direction/petunjuk soal
