@@ -136,7 +136,7 @@ export default function Dashboard() {
                 <div className="space-between flex items-center justify-between">
                     <h1 className="text-2xl font-bold">{isEdit ? 'Edit' : 'Tambah'} Data Dosen</h1>
                     <CButton type="primary" className="md:w-24" onClick={() => router.visit(route('master-data.dosen.manager'))}>
-                        Back
+                        Kembali
                     </CButton>
                 </div>
                 <Form {...form}>
