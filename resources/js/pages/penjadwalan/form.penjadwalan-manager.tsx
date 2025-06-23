@@ -83,9 +83,12 @@ export default function PenjadwalanForm() {
                 values,
                 {
                     preserveScroll: true,
+                    preserveState: false, // Force fresh data load
                     onSuccess: () => {
                         toast.success('Jadwal ujian berhasil diperbarui');
-                        router.visit(route('penjadwalan.index'));
+                        router.visit(route('penjadwalan.index'), {
+                            preserveState: false
+                        });
                     },
                     onError: (errors) => {
                         Object.keys(errors).forEach(key => {
@@ -100,9 +103,12 @@ export default function PenjadwalanForm() {
                 values,
                 {
                     preserveScroll: true,
+                    preserveState: false, // Force fresh data load
                     onSuccess: () => {
                         toast.success('Jadwal ujian berhasil ditambahkan');
-                        router.visit(route('penjadwalan.index'));
+                        router.visit(route('penjadwalan.index'), {
+                            preserveState: false
+                        });
                     },
                     onError: (errors) => {
                         Object.keys(errors).forEach(key => {

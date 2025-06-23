@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { PageFilter, PageProps, PaginatedResponse, type BreadcrumbItem } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -88,6 +88,10 @@ function PenjadwalanTable({ data: examData, pageFilters: filters }: { data: Pagi
                 router.delete(route('penjadwalan.destroy', targetId), {
                     preserveState: true,
                     preserveScroll: true,
+                    onSuccess: () => {
+                        // Force refresh halaman setelah delete
+                        router.reload({ only: ['data'] });
+                    }
                 });
             }
         } catch {
@@ -139,6 +143,10 @@ function PenjadwalanTable({ data: examData, pageFilters: filters }: { data: Pagi
             render: (exam: JadwalUjian) => (
                 <div className="flex justify-center gap-2">
                     <CButtonIcon 
+                        icon={Users} 
+                        onClick={() => router.visit(route('penjadwalan.peserta', exam.id_penjadwalan))} 
+                    />
+                    <CButtonIcon 
                         icon={Pencil} 
                         onClick={() => router.visit(route('penjadwalan.edit', exam.id_penjadwalan))} 
                     />
@@ -170,3 +178,4 @@ function PenjadwalanTable({ data: examData, pageFilters: filters }: { data: Pagi
         </>
     );
 }
+

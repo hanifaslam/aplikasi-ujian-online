@@ -76,9 +76,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [PenjadwalanController::class, 'index'])->name('index');
         Route::get('/create', [PenjadwalanController::class, 'create'])->name('create');
         Route::post('/', [PenjadwalanController::class, 'store'])->name('store');
-        Route::get('/{penjadwalan}/edit', [PenjadwalanController::class, 'edit'])->name('edit');
-        Route::put('/{penjadwalan}', [PenjadwalanController::class, 'update'])->name('update');
-        Route::delete('/{penjadwalan}', [PenjadwalanController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/edit', [PenjadwalanController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [PenjadwalanController::class, 'update'])->name('update');
+        Route::delete('/{id}', [PenjadwalanController::class, 'destroy'])->name('destroy');
+        
+        // Routes untuk peserta management
+        Route::get('/{id}/peserta', [PenjadwalanController::class, 'showPeserta'])->name('peserta');
+        Route::post('/{id}/peserta/add', [PenjadwalanController::class, 'addPeserta'])->name('peserta.add');
+        Route::delete('/{id}/peserta/remove', [PenjadwalanController::class, 'removePeserta'])->name('peserta.remove');
+        Route::delete('/{id}/peserta/clear-all', [PenjadwalanController::class, 'clearAllPeserta'])->name('peserta.clear-all');
+        Route::delete('/{id}/peserta/remove-selected', [PenjadwalanController::class, 'removeSelectedPeserta'])->name('peserta.remove-selected');
+        Route::get('/{id}/peserta/add', [PenjadwalanController::class, 'addPesertaForm'])->name('penjadwalan.peserta.add');
     });
 
     // Rekap Nilai
