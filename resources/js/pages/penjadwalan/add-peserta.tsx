@@ -71,7 +71,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function AddPeserta() {
-    const { penjadwalan, jadwalUjian, data: pesertaData, jumlahTerdaftar, sisaKuota, filters, flash } = usePage<PageProps>().props;
+    const { penjadwalan, data: pesertaData, jumlahTerdaftar, sisaKuota, filters, flash } = usePage<PageProps>().props;
     
     const [selectedPeserta, setSelectedPeserta] = useState<number[]>([]);
     const [isLoading, setIsLoading] = useState(false);

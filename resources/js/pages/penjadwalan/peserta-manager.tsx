@@ -72,7 +72,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function PesertaManager() {
-    const { penjadwalan, jadwalUjian, data: pesertaData, jumlahTerdaftar, sisaKuota, filters, flash } = usePage<PageProps>().props;
+    const { penjadwalan, data: pesertaData, jumlahTerdaftar, sisaKuota, filters, flash } = usePage<PageProps>().props;
 
     useEffect(() => {
         if (flash?.success) toast.success(flash.success);
@@ -238,7 +238,7 @@ function PesertaTable({
                     preserveScroll: false,
                 });
             }
-        } catch (error) {
+        } catch {
             toast.error('Terjadi kesalahan yang tidak terduga');
         } finally {
             setOpen(false);
@@ -299,7 +299,16 @@ function PesertaTable({
 
     const columns = [
         {
-            label: '', // Use an empty string for the label
+            label: (
+                <div className="flex items-center gap-2">
+                    <Checkbox
+                        checked={isAllSelected}
+                        indeterminate={isPartiallySelected}
+                        onCheckedChange={handleSelectAll}
+                    />
+                    <span>Pilih</span>
+                </div>
+            ),
             className: 'w-[100px]',
             render: (peserta: Peserta) => (
                 <div className="flex justify-center">
