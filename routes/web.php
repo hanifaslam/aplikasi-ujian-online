@@ -28,6 +28,8 @@ use App\Http\Controllers\TokenController;
 use App\Http\Controllers\MasterData\BidangController;
 use App\Http\Controllers\PaketSoal\MakeEventController;
 use App\Http\Controllers\PaketSoal\AddSoalController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
 
 
 
@@ -65,11 +67,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::get('monitoring-ujian', [App\Http\Controllers\MonitoringUjianController::class, 'index'])->name('monitoring.ujian');
-    Route::get('monitoring-ujian/{id}/preview', [App\Http\Controllers\MonitoringUjianController::class, 'preview'])->name('monitoring.ujian.preview');
-    Route::get('monitoring-ujian/{id}', [App\Http\Controllers\MonitoringUjianController::class, 'show'])->name('monitoring.ujian.detail');
-    Route::post('monitoring-ujian/{id}/reset-participant', [App\Http\Controllers\MonitoringUjianController::class, 'resetParticipant'])->name('monitoring.ujian.reset');
-    Route::post('monitoring-ujian/{id}/delete-participant', [App\Http\Controllers\MonitoringUjianController::class, 'deleteParticipant'])->name('monitoring.ujian.delete');
+    // Monitoring Ujian
+    Route::prefix('monitoring-ujian')->name('monitoring.ujian.')->group(function () {
+        Route::get('/', [App\Http\Controllers\MonitoringUjianController::class, 'index'])->name('index');
+        Route::get('/{id}/preview', [App\Http\Controllers\MonitoringUjianController::class, 'preview'])->name('preview');
+        Route::get('/{id}', [App\Http\Controllers\MonitoringUjianController::class, 'show'])->name('detail');
+        Route::post('/{id}/reset-participant', [App\Http\Controllers\MonitoringUjianController::class, 'resetParticipant'])->name('reset');
+        Route::post('/{id}/delete-participant', [App\Http\Controllers\MonitoringUjianController::class, 'deleteParticipant'])->name('delete');
+    });
 
     // Penjadwalan
     Route::prefix('penjadwalan')->name('penjadwalan.')->group(function () {
@@ -233,12 +238,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/', [UserManagerEditController::class, 'store'])->name('store');
         });
 
-        Route::get('roles', fn() => Inertia::render('user-management/role-manager'))->name('roles');
+        Route::prefix('roles')->name('roles.')->group(function () {
+            Route::get('/', [RoleController::class, 'index'])->name('index');
+            Route::post('/', [RoleController::class, 'store'])->name('store');
+            Route::put('/{role}', [RoleController::class, 'update'])->name('update');
+            Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
+            Route::post('/{role}/permissions', [RoleController::class, 'assignPermissions'])->name('assign-permissions');
+        });
+
+        Route::prefix('permissions')->name('permissions.')->group(function () {
+            Route::get('/', [PermissionController::class, 'index'])->name('index');
+            Route::post('/', [PermissionController::class, 'store'])->name('store');
+            Route::put('/{permission}', [PermissionController::class, 'update'])->name('update');
+            Route::delete('/{permission}', [PermissionController::class, 'destroy'])->name('destroy');
+        });
     });
 
-    Route::get('/token/current', [TokenController::class, 'getCurrentToken'])->name('token.current');
-    Route::get('/token/generate', [TokenController::class, 'generateNewToken'])->name('token.generate');
-    Route::get('/token/copy', [TokenController::class, 'copyToken'])->name('token.copy');
+    Route::prefix('token')->name('token.')->group(function () {
+        Route::get('/current', [TokenController::class, 'getCurrentToken'])->name('current');
+        Route::get('/generate', [TokenController::class, 'generateNewToken'])->name('generate');
+        Route::get('/copy', [TokenController::class, 'copyToken'])->name('copy');
+    });
 
     Route::get('/events/list', [MakeEventController::class, 'list']);
 });
