@@ -113,7 +113,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('create', [PesertaManagerEditController::class, 'create'])->name('create');
             Route::post('/', [PesertaManagerEditController::class, 'store'])->name('store');
             Route::post('import', [PesertaImportController::class, 'import'])->name('import');
+
+            // Route untuk mengubah status peserta
+            Route::put('{peserta}/toggle-status', [PesertaManagerController::class, 'toggleStatus'])->name('toggle-status');
         });
+
 
         // Grup route untuk halaman tampilan import peserta
         Route::prefix('import')->name('import.')->group(function () {
