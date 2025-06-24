@@ -42,7 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/paket-soal/add-soal', [AddSoalController::class, 'showAddSoalForm'])->name('paket-soal.add-soal');
     // Login
-    Route::get('/', fn () => Inertia::render('auth/login'))->name('home');
+    Route::get('/', fn() => Inertia::render('auth/login'))->name('home');
 
     Route::get('/paket-soal/list', [PaketSoalController::class, 'list']);
 
@@ -79,7 +79,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{id}/edit', [PenjadwalanController::class, 'edit'])->name('edit');
         Route::put('/{id}', [PenjadwalanController::class, 'update'])->name('update');
         Route::delete('/{id}', [PenjadwalanController::class, 'destroy'])->name('destroy');
-        
+
         // Routes untuk peserta management
         Route::get('/{id}/peserta', [PenjadwalanController::class, 'showPeserta'])->name('peserta');
         Route::post('/{id}/peserta/add', [PenjadwalanController::class, 'addPeserta'])->name('peserta.add');
@@ -96,7 +96,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // MASTER DATA
     Route::prefix('master-data')->name('master-data.')->group(function () {
-        Route::get('/', fn () => redirect()->route('dashboard'))->name('index');
+        Route::get('/', fn() => redirect()->route('dashboard'))->name('index');
 
         Route::get('peserta', function () {
             return Inertia::render('peserta');
@@ -198,7 +198,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::get('/', [PaketSoalController::class, 'index'])->name('index');
             Route::get('/create', [PaketSoalEditController::class, 'create'])->name('create');
-            Route::get('/create-event', fn () => Inertia::render('master-data/paket-soal/create-event'))->name('create-event');
+            Route::get('/create-event', fn() => Inertia::render('master-data/paket-soal/create-event'))->name('create-event');
             Route::post('/', [PaketSoalEditController::class, 'store'])->name('store');
             Route::get('/{paket_soal}', [PaketSoalEditController::class, 'edit'])->name('edit');
             Route::put('/{paket_soal}', [PaketSoalEditController::class, 'update'])->name('update');
@@ -208,7 +208,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         // Route untuk kategori soal
-        Route::prefix('kategori-soal')->name('master-data.kategori-soal.')->group(function () {
+        Route::prefix('kategori-soal')->name('kategori-soal.')->group(function () {
             Route::get('/', [KategoriUjianController::class, 'index'])->name('index');
             Route::get('/create', [KategoriUjianController::class, 'create'])->name('create');
             Route::post('/', [KategoriUjianController::class, 'store'])->name('store');
@@ -222,7 +222,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::middleware(['role:super_admin'])->prefix('user-management')->name('user-management.')->group(function () {
-        Route::get('/', fn () => redirect()->route('dashboard'))->name('index');
+        Route::get('/', fn() => redirect()->route('dashboard'))->name('index');
 
         Route::prefix('user')->name('user.')->group(function () {
             Route::get('/', [UserManagerController::class, 'index'])->name('manager');
@@ -233,7 +233,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/', [UserManagerEditController::class, 'store'])->name('store');
         });
 
-        Route::get('roles', fn () => Inertia::render('user-management/role-manager'))->name('roles');
+        Route::get('roles', fn() => Inertia::render('user-management/role-manager'))->name('roles');
     });
 
     Route::get('/token/current', [TokenController::class, 'getCurrentToken'])->name('token.current');
