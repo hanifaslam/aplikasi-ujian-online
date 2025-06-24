@@ -150,7 +150,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('bank-soal/{id}', [BankSoalController::class, 'destroy'])->name('bank.soal.destroy');
 
         // Route edit bank soal
-        Route::put('bank-soal/update/{id}', [BankSoalController::class, 'update'])->name('bank.soal.update');
+        Route::put('bank-soal/{id}', [BankSoalController::class, 'update'])->name('bank.soal.update');
         Route::get('bank-soal/{id}/edit', [BankSoalController::class, 'edit'])->name('bank.soal.edit');
 
         // Route tambah bank soal
@@ -208,7 +208,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
         // Route untuk kategori soal
-        Route::prefix('kategori-soal')->name('master-data.kategori-soal.')->group(function () {
+        Route::prefix('kategori-soal')->name('kategori-soal.')->group(function () {
             Route::get('/', [KategoriUjianController::class, 'index'])->name('index');
             Route::get('/create', [KategoriUjianController::class, 'create'])->name('create');
             Route::post('/', [KategoriUjianController::class, 'store'])->name('store');
@@ -216,6 +216,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::put('/{id}', [KategoriUjianController::class, 'update'])->name('update');
             Route::delete('/{id}', [KategoriUjianController::class, 'destroy'])->name('destroy');
         });
+        Route::get('/kategori-soal-dropdown', [KategoriUjianController::class, 'getKategoriList'])
+            ->name('kategori-soal.dropdown');
 
         Route::get('/bank-soal-checkbox/{paket_soal}/edit', [BankSoalControllerCheckbox::class, 'edit'])->name('bank-soal-checkbox.edit');
         Route::put('/bank-soal-checkbox/{paket_soal}', [BankSoalControllerCheckbox::class, 'update'])->name('bank-soal-checkbox.update');
