@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
+import { Permission, Role, type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
 import { KeyIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
@@ -15,24 +15,6 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: '/roles',
     },
 ];
-
-interface Role {
-    id: number;
-    name: string;
-    guard_name: string;
-    created_at: string;
-    updated_at: string;
-    permissions?: Array<{
-        id: number;
-        name: string;
-    }>;
-}
-
-interface Permission {
-    id: number;
-    name: string;
-    guard_name: string;
-}
 
 interface Props {
     roles: Role[];
