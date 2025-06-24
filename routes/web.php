@@ -228,6 +228,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/bank-soal-checkbox/{paket_soal}', [BankSoalControllerCheckbox::class, 'update'])->name('bank-soal-checkbox.update');
     });
 
+    // User Management routes
     Route::middleware(['role:super_admin'])->prefix('user-management')->name('user-management.')->group(function () {
         Route::get('/', fn() => redirect()->route('dashboard'))->name('index');
 
