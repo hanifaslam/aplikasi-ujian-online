@@ -10,6 +10,7 @@ const breadcrumbs = [
     { title: 'Bank Soal', href: '/master-data/bank-soal' },
     { title: 'Edit Soal', href: '/master-data/bank-soal/edit' },
 ];
+
 const Dropdown = ({
     label,
     value,
@@ -37,6 +38,7 @@ interface SoalForm {
     ids: string;
     kategori_soal: string;
     jenis_soal: string;
+    kd_mapel: string;
     suara: string;
     header_soal: string;
     body_soal: string;
@@ -114,18 +116,55 @@ export default function BankSoalEdit({ soal }: { soal: SoalForm }) {
     const [showUpload, setShowUpload] = useState(false);
     const [audioUrl, setAudioUrl] = useState<string | null>(null);
     const [deleteAudio, setDeleteAudio] = useState(false);
+    
+    // Track uploaded images for each field
     const [uploadedImages, setUploadedImages] = useState<Record<string, boolean>>({
         body_soal: false,
+        header_soal: false,
+        footer_soal: false,
+        jw_1: false,
+        jw_2: false,
+        jw_3: false,
+        jw_4: false,
     });
-    const [bodyImageBase64, setBodyImageBase64] = useState<string | null>(null);
+    
+    // Store base64 image data for each field
+    const [imageBase64Data, setImageBase64Data] = useState<Record<string, string | null>>({
+        body_soal: null,
+        header_soal: null,
+        footer_soal: null,
+        jw_1: null,
+        jw_2: null,
+        jw_3: null,
+        jw_4: null,
+    });
 
+    // Function to detect if text is a base64 encoded image
+    const isBase64Image = (text: string | null): boolean => {
+        if (!text) return false;
+        // Check for common base64 image prefixes
+        return text.startsWith('/9j') || text.startsWith('iVBOR') || text.startsWith('R0lGOD') || text.startsWith('UklGR');
+    };
+
+    // Check each field for base64 images on initial load
     useEffect(() => {
-        if ((soal.body_soal && soal.body_soal.startsWith('/9j')) || soal.body_soal.startsWith('iVBOR')) {
-            const fullBase64 = `data:image/*;base64,${soal.body_soal}`;
-            setBodyImageBase64(fullBase64);
-            setUploadedImages((prev) => ({ ...prev, body_soal: true }));
-        }
-    }, [soal.body_soal]);
+        const fieldsToCheck = ['body_soal', 'header_soal', 'footer_soal', 'jw_1', 'jw_2', 'jw_3', 'jw_4'];
+        
+        const newUploadedImages = { ...uploadedImages };
+        const newImageBase64Data = { ...imageBase64Data };
+        
+        fieldsToCheck.forEach((field) => {
+            const value = soal[field as keyof SoalForm];
+            if (value && isBase64Image(value as string)) {
+                newUploadedImages[field] = true;
+                newImageBase64Data[field] = `data:image/*;base64,${value}`;
+            }
+        });
+        
+        setUploadedImages(newUploadedImages);
+        setImageBase64Data(newImageBase64Data);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [soal]);
 
     useEffect(() => {
         // Existing bidang options fetch
@@ -141,7 +180,7 @@ export default function BankSoalEdit({ soal }: { soal: SoalForm }) {
         // Add new fetch for kategori options
         const fetchKategoriOptions = async () => {
             try {
-                const res = await axios.get('/master-data/kategorisoal');
+                const res = await axios.get('/master-data/kategori-soal-dropdown');
                 console.log('Kategori Soal response:', res.data);
                 setKategoriOptions(res.data);
             } catch (error) {
@@ -169,7 +208,14 @@ export default function BankSoalEdit({ soal }: { soal: SoalForm }) {
             reader.onerror = (error) => reject(error);
         });
 
-    const ImageUpload = ({ onUpload, uploaded }: { onUpload: (base64: string) => void; uploaded: boolean; onClear?: () => void }) => {
+    const ImageUpload = ({ 
+        onUpload, 
+        uploaded 
+    }: { 
+        fieldName: string;
+        onUpload: (base64: string) => void; 
+        uploaded: boolean; 
+    }) => {
         const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
             const file = e.target.files?.[0];
             if (file) {
@@ -233,6 +279,56 @@ export default function BankSoalEdit({ soal }: { soal: SoalForm }) {
                 console.error(errors);
             },
         });
+    };
+    
+    // Function to handle image rendering or editor rendering for a field
+    const renderFieldEditor = (fieldName: string, label: string) => {
+        const isUploaded = uploadedImages[fieldName];
+        const imageData = imageBase64Data[fieldName];
+        
+        return (
+            <div key={fieldName}>
+                <div className="mb-1 flex items-center justify-between">
+                    <label className="text-m text-foreground">{label}</label>
+                    <ImageUpload
+                        fieldName={fieldName}
+                        uploaded={isUploaded}
+                        onUpload={(base64) => {
+                            const base64Only = base64.split(',')[1] || base64;
+                            setImageBase64Data(prev => ({ ...prev, [fieldName]: base64 }));
+                            setUploadedImages(prev => ({ ...prev, [fieldName]: true }));
+                            setData(fieldName as keyof SoalForm, base64Only);
+                        }}
+                    />
+                </div>
+                
+                {isUploaded && imageData ? (
+                    <div className="relative rounded-lg border bg-gray-50 p-2">
+                        <img src={imageData} alt="Preview Gambar" className="mx-auto max-h-60" />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setImageBase64Data(prev => ({ ...prev, [fieldName]: null }));
+                                setUploadedImages(prev => ({ ...prev, [fieldName]: false }));
+                                setData(fieldName as keyof SoalForm, '');
+                            }}
+                            className="absolute top-2 right-2 rounded-full border border-gray-300 bg-white px-2 text-xs text-red-500 hover:bg-red-50"
+                        >
+                            ✕
+                        </button>
+                    </div>
+                ) : (
+                    <div className="bg-background w-full space-y-2 overflow-hidden rounded-lg border">
+                        <TooltipProvider>
+                            <Editor 
+                                value={data[fieldName as keyof SoalForm]?.toString() || ''} 
+                                onChange={(value: string) => setData(fieldName as keyof SoalForm, value)} 
+                            />
+                        </TooltipProvider>
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -357,81 +453,17 @@ export default function BankSoalEdit({ soal }: { soal: SoalForm }) {
                         </div>
                     )}
 
-                    <div>
-                        <label className="text-m text-foreground">Header Soal</label>
-                        <div className="bg-background w-full space-y-2 overflow-hidden rounded-lg border">
-                            <TooltipProvider>
-                                <Editor value={data.header_soal} onChange={(value: string) => setData('header_soal', value)} />
-                            </TooltipProvider>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div className="mb-1 flex items-center justify-between">
-                            <label className="text-m text-foreground">Body Soal</label>
-                            <ImageUpload
-                                uploaded={uploadedImages.body_soal}
-                                onUpload={(base64) => {
-                                    const base64Only = base64.split(',')[1] || base64;
-                                    setBodyImageBase64(base64);
-                                    setUploadedImages((prev) => ({ ...prev, body_soal: true }));
-                                    setData('body_soal', base64Only);
-                                }}
-                                onClear={() => {
-                                    setBodyImageBase64(null);
-                                    setUploadedImages((prev) => ({ ...prev, body_soal: false }));
-                                    setData('body_soal', '');
-                                }}
-                            />
-                        </div>
-                        {bodyImageBase64 ? (
-                            <div className="relative rounded-lg border bg-gray-50 p-2">
-                                <img src={bodyImageBase64} alt="Preview Gambar" className="mx-auto max-h-60" />
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setBodyImageBase64(null);
-                                        setUploadedImages((prev) => ({ ...prev, body_soal: false }));
-                                        setData('body_soal', '');
-                                    }}
-                                    className="absolute top-2 right-2 rounded-full border border-gray-300 bg-white px-2 text-xs text-red-500 hover:bg-red-50"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="bg-background w-full space-y-2 overflow-hidden rounded-lg border">
-                                <TooltipProvider>
-                                    <Editor value={data.body_soal} onChange={(value: string) => setData('body_soal', value)} />
-                                </TooltipProvider>
-                            </div>
-                        )}
-                    </div>
-
-                    <div>
-                        <label className="text-m text-foreground">Footer Soal</label>
-                        <div className="bg-background w-full space-y-2 overflow-hidden rounded-lg border">
-                            <TooltipProvider>
-                                <Editor value={data.footer_soal} onChange={(value: string) => setData('footer_soal', value)} />
-                            </TooltipProvider>
-                        </div>
-                    </div>
-
+                    {/* Render all fields with image uploading capability */}
+                    {renderFieldEditor('header_soal', 'Header Soal')}
+                    {renderFieldEditor('body_soal', 'Body Soal')}
+                    {renderFieldEditor('footer_soal', 'Footer Soal')}
+                    
+                    {/* Answer fields */}
                     {['jw_1', 'jw_2', 'jw_3', 'jw_4'].map((key, i) => {
-                        const label = i === 0 ? `Jawaban ${String.fromCharCode(65 + i)} (Jawaban Benar)` : `Jawaban ${String.fromCharCode(65 + i)}`;
-                        return (
-                            <div key={key}>
-                                <label className="text-m text-foreground">{label}</label>
-                                <div className="bg-background w-full space-y-2 overflow-hidden rounded-lg border">
-                                    <TooltipProvider>
-                                        <Editor
-                                            value={data[key as keyof SoalForm]?.toString() || ''}
-                                            onChange={(value: string) => setData(key as keyof SoalForm, value)}
-                                        />
-                                    </TooltipProvider>
-                                </div>
-                            </div>
-                        );
+                        const label = i === 0 
+                            ? `Jawaban ${String.fromCharCode(65 + i)} (Jawaban Benar)` 
+                            : `Jawaban ${String.fromCharCode(65 + i)}`;
+                        return renderFieldEditor(key, label);
                     })}
 
                     <div className="mt-4 flex gap-4">

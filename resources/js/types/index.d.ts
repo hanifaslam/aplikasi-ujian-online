@@ -88,6 +88,7 @@ export interface PageFilter {
     search: string;
     pages: number;
     status?: string;
+    exam_id?: string;
 }
 
 export type PageProps<T> = {
@@ -95,3 +96,27 @@ export type PageProps<T> = {
     filters: PageFilter;
     flash: FlashProps;
 };
+
+export interface Permission {
+    id: number;
+    name: string;
+    guard_name: string;
+    created_at: string;
+    updated_at: string;
+    roles?: Array<{
+        id: number;
+        name: string;
+    }>;
+}
+
+export interface Role {
+    id: number;
+    name: string;
+    guard_name: string;
+    created_at: string;
+    updated_at: string;
+    permissions?: Array<{
+        id: number;
+        name: string;
+    }>;
+}

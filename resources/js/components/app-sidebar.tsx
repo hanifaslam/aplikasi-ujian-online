@@ -3,7 +3,6 @@ import { MainNavItem, NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
     Book,
-    BookA,
     CalendarClock,
     GraduationCap,
     Home,
@@ -54,7 +53,7 @@ const items: MainNavItem[] = [
             },
             {
                 title: 'Kategori Ujian',
-                href: '/master-data/kategori-ujian',
+                href: '/master-data/kategori-soal',
                 icon: Book,
             },
             {
@@ -63,29 +62,19 @@ const items: MainNavItem[] = [
                 icon: Book,
             },
             {
-                title: 'Paket Soal',
-                href: '/master-data/paket-soal',
-                icon: Book,
-            },
-            {
                 title: 'Bank Soal',
                 href: '/master-data/bank-soal',
                 icon: Book,
-            },
-            {
-                title: 'Matakuliah',
-                icon: BookA,
-                href: '/master-data/matakuliah',
-            },
+            },            
             {
                 title: 'Event',
-                icon: BookA,
                 href: '/master-data/event',
+                icon: Book,
             },
             {
-                title: 'Bank Soal Checkbox',
-                icon: BookA,
-                href: '/master-data/banksoalcheckbox',
+                title: 'Paket Soal',
+                href: '/master-data/paket-soal',
+                icon: Book,
             },
         ],
     },
@@ -142,7 +131,7 @@ const items: MainNavItem[] = [
 
 export function AppSidebar() {
     return (
-        <Sidebar collapsible="icon" variant="inset" className="shadow-xl shadow-black/50">
+        <Sidebar collapsible="icon" defaultChecked variant="inset" className="shadow-xl shadow-black/50">
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
