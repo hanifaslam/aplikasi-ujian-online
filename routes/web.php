@@ -28,6 +28,8 @@ use App\Http\Controllers\TokenController;
 use App\Http\Controllers\MasterData\BidangController;
 use App\Http\Controllers\PaketSoal\MakeEventController;
 use App\Http\Controllers\PaketSoal\AddSoalController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
 
 
 
@@ -42,7 +44,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/paket-soal/add-soal', [AddSoalController::class, 'showAddSoalForm'])->name('paket-soal.add-soal');
     // Login
-    Route::get('/', fn () => Inertia::render('auth/login'))->name('home');
+    Route::get('/', fn() => Inertia::render('auth/login'))->name('home');
 
     Route::get('/paket-soal/list', [PaketSoalController::class, 'list']);
 
@@ -65,11 +67,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::get('monitoring-ujian', [App\Http\Controllers\MonitoringUjianController::class, 'index'])->name('monitoring.ujian');
-    Route::get('monitoring-ujian/{id}/preview', [App\Http\Controllers\MonitoringUjianController::class, 'preview'])->name('monitoring.ujian.preview');
-    Route::get('monitoring-ujian/{id}', [App\Http\Controllers\MonitoringUjianController::class, 'show'])->name('monitoring.ujian.detail');
-    Route::post('monitoring-ujian/{id}/reset-participant', [App\Http\Controllers\MonitoringUjianController::class, 'resetParticipant'])->name('monitoring.ujian.reset');
-    Route::post('monitoring-ujian/{id}/delete-participant', [App\Http\Controllers\MonitoringUjianController::class, 'deleteParticipant'])->name('monitoring.ujian.delete');
+    // Monitoring Ujian
+    Route::prefix('monitoring-ujian')->name('monitoring.ujian.')->group(function () {
+        Route::get('/', [App\Http\Controllers\MonitoringUjianController::class, 'index'])->name('index');
+        Route::get('/{id}/preview', [App\Http\Controllers\MonitoringUjianController::class, 'preview'])->name('preview');
+        Route::get('/{id}', [App\Http\Controllers\MonitoringUjianController::class, 'show'])->name('detail');
+        Route::post('/{id}/reset-participant', [App\Http\Controllers\MonitoringUjianController::class, 'resetParticipant'])->name('reset');
+        Route::post('/{id}/delete-participant', [App\Http\Controllers\MonitoringUjianController::class, 'deleteParticipant'])->name('delete');
+    });
 
     // Penjadwalan
     Route::prefix('penjadwalan')->name('penjadwalan.')->group(function () {
@@ -79,7 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/{id}/edit', [PenjadwalanController::class, 'edit'])->name('edit');
         Route::put('/{id}', [PenjadwalanController::class, 'update'])->name('update');
         Route::delete('/{id}', [PenjadwalanController::class, 'destroy'])->name('destroy');
-        
+
         // Routes untuk peserta management
         Route::get('/{id}/peserta', [PenjadwalanController::class, 'showPeserta'])->name('peserta');
         Route::post('/{id}/peserta/add', [PenjadwalanController::class, 'addPeserta'])->name('peserta.add');
@@ -96,7 +101,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // MASTER DATA
     Route::prefix('master-data')->name('master-data.')->group(function () {
-        Route::get('/', fn () => redirect()->route('dashboard'))->name('index');
+        Route::get('/', fn() => redirect()->route('dashboard'))->name('index');
 
         Route::get('peserta', function () {
             return Inertia::render('peserta');
@@ -198,7 +203,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::get('/', [PaketSoalController::class, 'index'])->name('index');
             Route::get('/create', [PaketSoalEditController::class, 'create'])->name('create');
-            Route::get('/create-event', fn () => Inertia::render('master-data/paket-soal/create-event'))->name('create-event');
+            Route::get('/create-event', fn() => Inertia::render('master-data/paket-soal/create-event'))->name('create-event');
             Route::post('/', [PaketSoalEditController::class, 'store'])->name('store');
             Route::get('/{paket_soal}', [PaketSoalEditController::class, 'edit'])->name('edit');
             Route::put('/{paket_soal}', [PaketSoalEditController::class, 'update'])->name('update');
@@ -223,8 +228,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/bank-soal-checkbox/{paket_soal}', [BankSoalControllerCheckbox::class, 'update'])->name('bank-soal-checkbox.update');
     });
 
+    // User Management routes
     Route::middleware(['role:super_admin'])->prefix('user-management')->name('user-management.')->group(function () {
-        Route::get('/', fn () => redirect()->route('dashboard'))->name('index');
+        Route::get('/', fn() => redirect()->route('dashboard'))->name('index');
 
         Route::prefix('user')->name('user.')->group(function () {
             Route::get('/', [UserManagerController::class, 'index'])->name('manager');
@@ -235,12 +241,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/', [UserManagerEditController::class, 'store'])->name('store');
         });
 
-        Route::get('roles', fn () => Inertia::render('user-management/role-manager'))->name('roles');
+        Route::prefix('roles')->name('roles.')->group(function () {
+            Route::get('/', [RoleController::class, 'index'])->name('index');
+            Route::post('/', [RoleController::class, 'store'])->name('store');
+            Route::put('/{role}', [RoleController::class, 'update'])->name('update');
+            Route::delete('/{role}', [RoleController::class, 'destroy'])->name('destroy');
+            Route::post('/{role}/permissions', [RoleController::class, 'assignPermissions'])->name('assign-permissions');
+        });
+
+        Route::prefix('permissions')->name('permissions.')->group(function () {
+            Route::get('/', [PermissionController::class, 'index'])->name('index');
+            Route::post('/', [PermissionController::class, 'store'])->name('store');
+            Route::put('/{permission}', [PermissionController::class, 'update'])->name('update');
+            Route::delete('/{permission}', [PermissionController::class, 'destroy'])->name('destroy');
+        });
     });
 
-    Route::get('/token/current', [TokenController::class, 'getCurrentToken'])->name('token.current');
-    Route::get('/token/generate', [TokenController::class, 'generateNewToken'])->name('token.generate');
-    Route::get('/token/copy', [TokenController::class, 'copyToken'])->name('token.copy');
+    Route::prefix('token')->name('token.')->group(function () {
+        Route::get('/current', [TokenController::class, 'getCurrentToken'])->name('current');
+        Route::get('/generate', [TokenController::class, 'generateNewToken'])->name('generate');
+        Route::get('/copy', [TokenController::class, 'copyToken'])->name('copy');
+    });
 
     Route::get('/events/list', [MakeEventController::class, 'list']);
 });
